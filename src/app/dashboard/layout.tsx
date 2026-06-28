@@ -5,6 +5,7 @@ import SignIn from '@/components/dashboard/SignIn';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import DashboardNavbar from '@/components/dashboard/DashboardNavbar';
+import { Web3Provider } from '@/components/providers/Web3Provider';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -15,13 +16,15 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   if (!session) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Navbar />
-        <main className="flex-grow pt-12">
-          <SignIn />
-        </main>
-        <Footer />
-      </div>
+      <Web3Provider>
+        <div className="min-h-screen flex flex-col bg-slate-50">
+          <Navbar />
+          <main className="flex-grow pt-12">
+            <SignIn />
+          </main>
+          <Footer />
+        </div>
+      </Web3Provider>
     );
   }
 
@@ -32,34 +35,38 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Navbar />
-        <main className="flex-grow pt-12">
-          <SignIn />
-        </main>
-        <Footer />
-      </div>
+      <Web3Provider>
+        <div className="min-h-screen flex flex-col bg-slate-50">
+          <Navbar />
+          <main className="flex-grow pt-12">
+            <SignIn />
+          </main>
+          <Footer />
+        </div>
+      </Web3Provider>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* Top Navigation - Exact match to landing page */}
-      <DashboardNavbar user={{
-        walletAddress: user.walletAddress,
-        referralCode: user.referralCode,
-        status: user.status,
-      }} />
+    <Web3Provider>
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        {/* Top Navigation - Exact match to landing page */}
+        <DashboardNavbar user={{
+          walletAddress: user.walletAddress,
+          referralCode: user.referralCode,
+          status: user.status,
+        }} />
 
-      {/* Main Content wrapper */}
-      <main className="flex-grow flex flex-col min-w-0 overflow-x-hidden pt-24 pb-12">
-        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
-      
-      {/* Footer across all authenticated pages too */}
-      <Footer />
-    </div>
+        {/* Main Content wrapper */}
+        <main className="flex-grow flex flex-col min-w-0 overflow-x-hidden pt-24 pb-12">
+          <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
+        
+        {/* Footer across all authenticated pages too */}
+        <Footer />
+      </div>
+    </Web3Provider>
   );
 }

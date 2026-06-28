@@ -39,7 +39,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Web3Provider } from "@/components/providers/Web3Provider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -55,9 +54,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Web3Provider>
-          {children}
-        </Web3Provider>
+        {children}
         <SpeedInsights />
         <Analytics />
       </body>
