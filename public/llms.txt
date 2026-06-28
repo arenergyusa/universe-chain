@@ -13,10 +13,10 @@ Universe Chain is a high-security, transparent, and decentralized Multilevel Mar
 - **Auto-Withdrawals:** Verified users can instantly claim their earnings directly to their connected wallets.
 
 ## Important Links
-- **Website:** https://universechain.online
-- **App Dashboard:** https://universechain.online/dashboard
-- **About Us:** https://universechain.online/about
-- **Support:** https://universechain.online/help-support
+- [Website](https://universechain.online)
+- [App Dashboard](https://universechain.online/dashboard)
+- [About Us](https://universechain.online/about)
+- [Support](https://universechain.online/help-support)
 
 ## Technical Stack
 - **Frontend:** Next.js (App Router), React, TailwindCSS, Lucide Icons

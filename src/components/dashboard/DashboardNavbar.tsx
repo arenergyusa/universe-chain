@@ -68,7 +68,7 @@ export default function DashboardNavbar({ user }: DashboardNavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center" aria-label="Universe Chain Home">
               <div className="flex items-center justify-center">
                 <UniverseLogo className="h-10 w-auto" />
               </div>
