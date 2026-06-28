@@ -264,7 +264,7 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {steps.map((step, i) => (
                 <div key={i} className="relative glass-card p-6 rounded-2xl border border-slate-100 space-y-6">
-                  <div aria-hidden="true" className="text-4xl font-black text-sky-200/50 tracking-wider font-mono">{step.step}</div>
+                  <div aria-hidden="true" className="text-4xl font-black text-sky-600 tracking-wider font-mono">{step.step}</div>
                   <div className="space-y-2">
                     <h3 className="text-lg font-bold text-slate-900">{step.title}</h3>
                     <p className="text-sm text-slate-500 leading-relaxed">{step.description}</p>

@@ -65,11 +65,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-slate-200/60 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             &copy; {currentYear} Universe Chain. All rights reserved.
           </p>
           <div className="flex space-x-6">
-            <span className="text-xs text-slate-400 flex items-center space-x-1.5">
+            <span className="text-xs text-slate-500 flex items-center space-x-1.5">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse-slow"></span>
               <span>Platform Status Online</span>
             </span>
