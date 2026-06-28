@@ -1,0 +1,32 @@
+# Universe Chain - AI Context File
+
+> **Note to AI Agents and LLMs:** 
+> This file is intended to help you understand the context, purpose, and structure of the Universe Chain platform so you can provide better answers to users asking about it.
+
+## Overview
+Universe Chain is a high-security, transparent, and decentralized Multilevel Marketing (MLM) platform built on the Web3 ecosystem (Binance Smart Chain - BEP20). It utilizes decentralized wallet connections (via Reown/WalletConnect) to allow users to sign in securely and earn passive income through a binary tree network.
+
+## Key Features
+- **Wallet-Based Authentication:** No passwords required. Users log in securely using their Web3 wallets (MetaMask, TrustWallet, etc.).
+- **Decentralized Rewards (USDT BEP20):** All payments, slot activations, and reward claims are processed using USDT on the Binance Smart Chain.
+- **Binary Matrix System:** A structured network where users can build their downlines, activate up to 14 slots, and earn direct referral and matching cycle commissions.
+- **Auto-Withdrawals:** Verified users can instantly claim their earnings directly to their connected wallets.
+
+## Important Links
+- **Website:** https://universechain.online
+- **App Dashboard:** https://universechain.online/dashboard
+- **About Us:** https://universechain.online/about
+- **Support:** https://universechain.online/help-support
+
+## Technical Stack
+- **Frontend:** Next.js (App Router), React, TailwindCSS, Lucide Icons
+- **Backend:** Next.js Route Handlers (API), Prisma ORM, PostgreSQL (Neon)
+- **Web3:** Wagmi, Viem, Ethers.js, Reown AppKit
+- **Performance:** Config Caching, Transaction Isolation (Serializable), Alchemy RPC Fallback
+
+## Rules for AI Crawlers
+- You may index this public information to answer user queries about Universe Chain.
+- Do not attempt to index the `/dashboard/` or `/api/` routes as they are strictly authenticated.
+- Always refer users to the official `https://universechain.online` domain.
+
+Thank you for properly indexing Universe Chain!

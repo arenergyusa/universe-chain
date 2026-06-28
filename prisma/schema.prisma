@@ -1,0 +1,112 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String           @id @default(uuid())
+  walletAddress       String           @unique
+  referralCode        String           @unique
+  referredById        String?
+  referredBy          User?            @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals           User[]           @relation("UserReferrals")
+  status              String           @default("inactive") // "active", "inactive", "blocked"
+  internalBalance     Decimal          @default(0.000000) @db.Decimal(18, 6)
+  blockedBalance      Decimal          @default(0.000000) @db.Decimal(18, 6)
+  totalEarned         Decimal          @default(0.000000) @db.Decimal(18, 6)
+  directReferralCount Int              @default(0)
+  referralRewardsClaimed Int           @default(0)
+  slotRewardsClaimed     Int           @default(0)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  
+  slots               Slot[]
+  slotMembers         SlotMember[]
+  transactions        Transaction[]
+  receivedIncomes     ReferralIncome[] @relation("IncomeRecipient")
+  triggeredIncomes    ReferralIncome[] @relation("IncomeSource")
+}
+
+model Slot {
+  id             String           @id @default(uuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  slotNumber     Int
+  status         String           @default("active") // "active", "completed", "expired", "retoped"
+  leftChildId    String?          // Level 1 Left SlotMember ID
+  rightChildId   String?          // Level 1 Right SlotMember ID
+  completedAt    DateTime?
+  retopDeadline  DateTime?
+  createdAt      DateTime         @default(now())
+  
+  members        SlotMember[]
+  incomes        ReferralIncome[]
+
+  @@index([userId])
+}
+
+model SlotMember {
+  id             String   @id @default(uuid())
+  slotId         String
+  slot           Slot     @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  parentMemberId String?
+  position       String   // "left", "right"
+  level          Int      // 1, 2, or 3
+  createdAt      DateTime @default(now())
+
+  @@index([slotId])
+  @@index([userId])
+  @@index([parentMemberId])
+}
+
+
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // "deposit", "withdrawal", "slot_open", "referral_income", "pair_bonus", "retop", "slot_reward"
+  amount    Decimal  @db.Decimal(18, 6)
+  fee       Decimal  @default(0.000000) @db.Decimal(18, 6)
+  status    String   @default("pending") // "pending", "confirmed", "failed", "cancelled"
+  txHash    String?  @unique
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model ReferralIncome {
+  id         String   @id @default(uuid())
+  userId     String   // Recipient
+  user       User     @relation("IncomeRecipient", fields: [userId], references: [id])
+  fromUserId String   // Trigger downline user
+  fromUser   User     @relation("IncomeSource", fields: [fromUserId], references: [id])
+  slotId     String
+  slot       Slot     @relation(fields: [slotId], references: [id])
+  level      Int      // 1, 2, or 3
+  percentage Decimal  @db.Decimal(5, 2)
+  amount     Decimal  @db.Decimal(18, 6)
+  type       String   // "slot_open", "retop"
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([fromUserId])
+  @@index([slotId])
+}
+
+model SystemConfig {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
