@@ -40,6 +40,8 @@ export const metadata: Metadata = {
 };
 
 import { Web3Provider } from "@/components/providers/Web3Provider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function RootLayout({
   children,
@@ -56,6 +58,8 @@ export default function RootLayout({
         <Web3Provider>
           {children}
         </Web3Provider>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );

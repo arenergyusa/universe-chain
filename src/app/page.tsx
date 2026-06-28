@@ -140,7 +140,7 @@ export default function Home() {
                   {stats.map((stat, i) => (
                     <div key={i} className="text-center lg:text-left">
                       <div className="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">{stat.value}</div>
-                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{stat.label}</div>
+                      <div className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -179,8 +179,8 @@ export default function Home() {
                           <div className="w-0.5 h-4 bg-slate-100"></div>
                           <div className="flex justify-between w-full relative">
                             <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-100"></div>
-                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 font-bold text-[10px] z-10">Ali</div>
-                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 font-bold text-[10px] z-10">Raj</div>
+                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-[10px] z-10">Ali</div>
+                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-[10px] z-10">Raj</div>
                           </div>
                         </div>
 
@@ -191,8 +191,8 @@ export default function Home() {
                           <div className="w-0.5 h-4 bg-slate-100"></div>
                           <div className="flex justify-between w-full relative">
                             <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-100"></div>
-                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 font-bold text-[10px] z-10">Noor</div>
-                            <div className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-400 font-bold text-[10px] z-10">+</div>
+                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-[10px] z-10">Noor</div>
+                            <div className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold text-[10px] z-10">+</div>
                           </div>
                         </div>
                       </div>
@@ -223,7 +223,7 @@ export default function Home() {
         <section className="py-20 bg-white border-y border-slate-200/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-              <h2 className="text-xs font-bold tracking-wider text-sky-600 uppercase">Why People Choose Us</h2>
+              <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">Why People Choose Us</h2>
               <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 A platform that respects your time and trust
               </p>
@@ -252,7 +252,7 @@ export default function Home() {
         <section id="how-it-works" className="py-20 bg-slate-50/50 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-              <h2 className="text-xs font-bold tracking-wider text-sky-600 uppercase">How It Works</h2>
+              <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">How It Works</h2>
               <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 Four simple steps. That&apos;s it.
               </p>
@@ -264,7 +264,7 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {steps.map((step, i) => (
                 <div key={i} className="relative glass-card p-6 rounded-2xl border border-slate-100 space-y-6">
-                  <div className="text-4xl font-black text-sky-200/50 tracking-wider font-mono">{step.step}</div>
+                  <div aria-hidden="true" className="text-4xl font-black text-sky-200/50 tracking-wider font-mono">{step.step}</div>
                   <div className="space-y-2">
                     <h3 className="text-lg font-bold text-slate-900">{step.title}</h3>
                     <p className="text-sm text-slate-500 leading-relaxed">{step.description}</p>
@@ -279,7 +279,7 @@ export default function Home() {
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-              <h2 className="text-xs font-bold tracking-wider text-sky-600 uppercase">Get Started</h2>
+              <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">Get Started</h2>
               <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 One activation. Unlimited possibilities.
               </p>
@@ -296,7 +296,7 @@ export default function Home() {
                     <span className="text-5xl font-black text-slate-900">100</span>
                     <span className="text-lg font-bold text-slate-500 ml-2">USDT</span>
                   </div>
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">One-Time Activation</p>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">One-Time Activation</p>
                 </div>
 
                 <div className="p-8 space-y-6">
@@ -340,7 +340,7 @@ export default function Home() {
         <section className="py-20 bg-slate-50/50 border-t border-slate-200/50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center space-y-4 mb-16">
-              <h2 className="text-xs font-bold tracking-wider text-sky-600 uppercase">FAQ</h2>
+              <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">FAQ</h2>
               <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 Got questions? We&apos;ve got answers.
               </p>
