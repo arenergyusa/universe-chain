@@ -31,7 +31,7 @@ export default async function DepositPage() {
     <div className="space-y-8 max-w-4xl mx-auto animate-fade-in">
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          Web3 Deposit
+          Deposit
         </h1>
         <p className="text-slate-500 text-sm">
           Seamlessly fund your account by signing a transaction directly from your connected wallet.

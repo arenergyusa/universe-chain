@@ -40,7 +40,7 @@ export default async function WithdrawPage() {
           Withdraw Funds
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Securely transfer USDT from your Universe Chain account to any external wallet.
+          Securely transfer USDT from your Universe Chain account to wallet.
         </p>
       </div>
 
@@ -76,17 +76,16 @@ export default async function WithdrawPage() {
                         <div className="text-xs font-bold text-slate-700">
                           {parseFloat(tx.amount.toString()).toFixed(2)} USDT
                         </div>
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
-                          isCompleted
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${isCompleted
                             ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                             : isPending
-                            ? 'bg-amber-50 text-amber-600 border border-amber-100'
-                            : 'bg-rose-50 text-rose-600 border border-rose-100'
-                        }`}>
+                              ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                              : 'bg-rose-50 text-rose-600 border border-rose-100'
+                          }`}>
                           {tx.status}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold">
                         <span>{new Date(tx.createdAt).toLocaleDateString()}</span>
                         {isCompleted && tx.txHash && !tx.txHash.startsWith('awaiting') && !tx.txHash.startsWith('failed') && (

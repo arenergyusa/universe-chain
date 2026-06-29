@@ -53,7 +53,7 @@ export default async function DashboardOverview() {
 
   const activeSlotsCount = user.slots.length;
   const adminDepositAddress = process.env.ADMIN_DEPOSIT_ADDRESS || '0xAdminAddressNotConfigured';
-  
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const referralLink = `${baseUrl}/login?ref=${user.referralCode}`;
 
@@ -73,7 +73,7 @@ export default async function DashboardOverview() {
             Manage your wallet, view your active cycles, and monitor your community growth.
           </p>
         </div>
-        
+
         {/* Status Indicator */}
         <div className="flex items-center space-x-3 bg-white border border-slate-200/80 rounded-2xl p-3 shadow-sm w-fit">
           <div className={`w-3 h-3 rounded-full ${user.status === 'active' ? 'bg-emerald-500 animate-pulse-slow' : 'bg-amber-500'}`} />
@@ -124,7 +124,7 @@ export default async function DashboardOverview() {
         {/* Internal Balance Card */}
         <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Internal Balance</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Balance</span>
             <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-sky-50 flex items-center justify-center border border-sky-100 text-sky-600">
               <Wallet className="w-4.5 h-4.5" />
             </div>
@@ -140,7 +140,7 @@ export default async function DashboardOverview() {
         {/* Total Earned Card */}
         <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Earned</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Earned</span>
             <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 text-emerald-600">
               <TrendingUp className="w-4.5 h-4.5" />
             </div>
@@ -156,7 +156,7 @@ export default async function DashboardOverview() {
         {/* Active Slots Card */}
         <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Slots</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Slots</span>
             <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center border border-indigo-100 text-indigo-600">
               <Layers className="w-4.5 h-4.5" />
             </div>
@@ -165,14 +165,14 @@ export default async function DashboardOverview() {
             <div className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
               {activeSlotsCount}
             </div>
-            <div className="text-[10px] font-bold text-slate-400 mt-1">Active Cycles</div>
+            <div className="text-[10px] font-bold text-slate-400 mt-1">Active Slots</div>
           </div>
         </div>
 
         {/* Community Members Card */}
         <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Direct Invites</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Invites</span>
             <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-purple-50 flex items-center justify-center border border-purple-100 text-purple-600">
               <Users className="w-4.5 h-4.5" />
             </div>
@@ -188,20 +188,20 @@ export default async function DashboardOverview() {
 
       {/* Referral Link & Add Funds Split */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Referral Link Section */}
         <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-black rounded-3xl p-6 sm:p-8 shadow-lg shadow-indigo-900/20 text-white space-y-6 relative overflow-hidden flex flex-col justify-between">
           <div className="absolute -top-12 -right-12 p-8 opacity-10">
             <Share2 className="w-48 h-48" />
           </div>
-          
+
           <div className="relative z-10 space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 border border-indigo-500/20">
               <Gift className="w-3.5 h-3.5" /> Affiliate Program
             </div>
             <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight">Invite & Earn</h3>
             <p className="text-indigo-200 text-xs leading-relaxed max-w-sm">
-              Share your unique referral link to build your binary matrix. Earn up to 25% commissions instantly, PLUS claim bonus rewards for direct referrals and board completions!
+              Share your unique referral link to build your binary matrix. Earn commissions instantly, PLUS claim bonus rewards for direct referrals and slots completions!
             </p>
           </div>
 
@@ -224,7 +224,7 @@ export default async function DashboardOverview() {
               Deposit USDT directly from your connected Web3 wallet. Funds are credited instantly to your internal balance.
             </p>
           </div>
-          
+
           <DepositSync adminAddress={adminDepositAddress} />
         </div>
       </div>
@@ -281,12 +281,11 @@ export default async function DashboardOverview() {
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Joined {new Date(ref.createdAt).toLocaleDateString()}</span>
                   </div>
-                  
-                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border ${
-                    ref.status === 'active'
-                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                      : 'bg-amber-50 text-amber-600 border-amber-200'
-                  }`}>
+
+                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border ${ref.status === 'active'
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                    : 'bg-amber-50 text-amber-600 border-amber-200'
+                    }`}>
                     {ref.status === 'active' ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -304,7 +303,7 @@ export default async function DashboardOverview() {
             <h3 className="font-extrabold text-slate-800 text-sm sm:text-base">Recent Activity</h3>
           </div>
           <Link
-            href="/dashboard"
+            href="/dashboard/history"
             className="text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-full transition-colors flex items-center space-x-1"
           >
             <span>View All</span>
@@ -329,16 +328,15 @@ export default async function DashboardOverview() {
             user.transactions.map((tx) => (
               <div key={tx.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center border ${
-                    tx.type === 'deposit' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                  <div className={`w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center border ${tx.type === 'deposit' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                     tx.type === 'withdrawal' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                    tx.type === 'referral_income' || tx.type === 'slot_reward' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                    'bg-slate-50 text-slate-600 border-slate-200'
-                  }`}>
+                      tx.type === 'referral_income' || tx.type === 'slot_reward' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                        'bg-slate-50 text-slate-600 border-slate-200'
+                    }`}>
                     {tx.type === 'deposit' ? <ArrowDownCircle className="w-5 h-5" /> :
-                     tx.type === 'withdrawal' ? <ArrowUpCircle className="w-5 h-5" /> :
-                     tx.type === 'referral_income' ? <Gift className="w-5 h-5" /> :
-                     <Layers className="w-5 h-5" />}
+                      tx.type === 'withdrawal' ? <ArrowUpCircle className="w-5 h-5" /> :
+                        tx.type === 'referral_income' ? <Gift className="w-5 h-5" /> :
+                          <Layers className="w-5 h-5" />}
                   </div>
                   <div>
                     <div className="text-sm font-bold text-slate-800 capitalize">
@@ -352,9 +350,8 @@ export default async function DashboardOverview() {
 
                 <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-1/3">
                   <div className="flex flex-col items-start sm:items-end">
-                    <span className={`text-sm font-black ${
-                      ['deposit', 'referral_income', 'slot_reward', 'pair_bonus'].includes(tx.type) ? 'text-emerald-600' : 'text-slate-900'
-                    }`}>
+                    <span className={`text-sm font-black ${['deposit', 'referral_income', 'slot_reward', 'pair_bonus'].includes(tx.type) ? 'text-emerald-600' : 'text-slate-900'
+                      }`}>
                       {['deposit', 'referral_income', 'slot_reward', 'pair_bonus'].includes(tx.type) ? '+' : '-'}
                       {parseFloat(tx.amount.toString()).toFixed(2)} USDT
                     </span>
@@ -364,7 +361,7 @@ export default async function DashboardOverview() {
                       </span>
                     )}
                   </div>
-                  
+
                   <div className="flex-shrink-0">
                     {tx.status === 'confirmed' ? (
                       <CheckCircle2 className="w-5 h-5 text-emerald-500" />

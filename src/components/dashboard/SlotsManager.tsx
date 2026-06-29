@@ -36,13 +36,13 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
 
   // activeSlotMap only holds currently 'active' slots that can be viewed/filled
   const activeSlotMap = new Map(activeSlots.filter(s => s.status === 'active').map(s => [s.slotNumber, s]));
-  
+
   // unlockedLevelsMap holds any slot that was ever activated (active, completed, retoped) to allow unlocking the next level
   const unlockedLevelsMap = new Map(activeSlots.map(s => [s.slotNumber, true]));
 
   const currentSlot = activeSlotMap.get(selectedSlotNum);
   const isSelectedActive = !!currentSlot;
-  
+
   // Check if this slot requires a Retop (i.e. it has a completed history but no active matrix)
   const isSelectedRetop = !isSelectedActive && activeSlots.some(s => s.slotNumber === selectedSlotNum && (s.status === 'completed' || s.status === 'retoped'));
 
@@ -124,168 +124,168 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
       <div className="w-full overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="space-y-8 py-4 min-w-[750px] flex flex-col items-center mx-auto">
           {/* Root Level (You) */}
-        <div className="flex flex-col items-center">
-          <div className="flex flex-col items-center p-3 bg-slate-900 border border-slate-800 text-white rounded-2xl w-28 shadow-md">
-            <Award className="w-5 h-5 mb-1 text-sky-400" />
-            <span className="text-[10px] font-extrabold uppercase tracking-wider">Your Position</span>
-          </div>
-          <div className="h-6 w-0.5 bg-slate-300"></div>
-        </div>
-
-        {/* Level 1 (2 nodes) */}
-        <div className="w-full flex justify-around relative">
-          <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>
-          {/* Level 1 Left */}
-          <div className="flex flex-col items-center w-1/2">
-            <div className="h-6 w-0.5 bg-slate-300"></div>
-            {leftL1 ? (
-              <div className="flex flex-col items-center p-2.5 bg-sky-500/10 border border-sky-500/30 text-sky-700 rounded-xl w-24 shadow-2xs">
-                <User className="w-4 h-4 mb-1 text-sky-600" />
-                <span className="text-[9px] font-bold font-mono truncate w-full text-center">
-                  {formatAddress(leftL1.user.walletAddress)}
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center p-2.5 bg-slate-50 border border-slate-200 border-dashed text-slate-400 rounded-xl w-24">
-                <HelpCircle className="w-4 h-4 mb-1 text-slate-300" />
-                <span className="text-[9px] font-bold uppercase tracking-wider">Available</span>
-              </div>
-            )}
+          <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center p-3 bg-slate-900 border border-slate-800 text-white rounded-2xl w-28 shadow-md">
+              <Award className="w-5 h-5 mb-1 text-sky-400" />
+              <span className="text-[10px] font-extrabold uppercase tracking-wider">Your Position</span>
+            </div>
             <div className="h-6 w-0.5 bg-slate-300"></div>
           </div>
 
-          {/* Level 1 Right */}
-          <div className="flex flex-col items-center w-1/2">
-            <div className="h-6 w-0.5 bg-slate-300"></div>
-            {rightL1 ? (
-              <div className="flex flex-col items-center p-2.5 bg-sky-500/10 border border-sky-500/30 text-sky-700 rounded-xl w-24 shadow-2xs">
-                <User className="w-4 h-4 mb-1 text-sky-600" />
-                <span className="text-[9px] font-bold font-mono truncate w-full text-center">
-                  {formatAddress(rightL1.user.walletAddress)}
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center p-2.5 bg-slate-50 border border-slate-200 border-dashed text-slate-400 rounded-xl w-24">
-                <HelpCircle className="w-4 h-4 mb-1 text-slate-300" />
-                <span className="text-[9px] font-bold uppercase tracking-wider">Available</span>
-              </div>
-            )}
-            <div className="h-6 w-0.5 bg-slate-300"></div>
-          </div>
-        </div>
-
-        {/* Level 2 (4 nodes) */}
-        <div className="w-full flex justify-around relative">
-          {/* Children under L1 Left */}
-          <div className="w-1/2 flex justify-around relative">
+          {/* Level 1 (2 nodes) */}
+          <div className="w-full flex justify-around relative">
             <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>
+            {/* Level 1 Left */}
             <div className="flex flex-col items-center w-1/2">
               <div className="h-6 w-0.5 bg-slate-300"></div>
-              {leftL1 ? getNode(level2, leftL1.id, 'left') : (
-                <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
+              {leftL1 ? (
+                <div className="flex flex-col items-center p-2.5 bg-sky-500/10 border border-sky-500/30 text-sky-700 rounded-xl w-24 shadow-2xs">
+                  <User className="w-4 h-4 mb-1 text-sky-600" />
+                  <span className="text-[9px] font-bold font-mono truncate w-full text-center">
+                    {formatAddress(leftL1.user.walletAddress)}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center p-2.5 bg-slate-50 border border-slate-200 border-dashed text-slate-400 rounded-xl w-24">
+                  <HelpCircle className="w-4 h-4 mb-1 text-slate-300" />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Available</span>
+                </div>
               )}
-              {leftLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+              <div className="h-6 w-0.5 bg-slate-300"></div>
             </div>
+
+            {/* Level 1 Right */}
             <div className="flex flex-col items-center w-1/2">
               <div className="h-6 w-0.5 bg-slate-300"></div>
-              {leftL1 ? getNode(level2, leftL1.id, 'right') : (
-                <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
+              {rightL1 ? (
+                <div className="flex flex-col items-center p-2.5 bg-sky-500/10 border border-sky-500/30 text-sky-700 rounded-xl w-24 shadow-2xs">
+                  <User className="w-4 h-4 mb-1 text-sky-600" />
+                  <span className="text-[9px] font-bold font-mono truncate w-full text-center">
+                    {formatAddress(rightL1.user.walletAddress)}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center p-2.5 bg-slate-50 border border-slate-200 border-dashed text-slate-400 rounded-xl w-24">
+                  <HelpCircle className="w-4 h-4 mb-1 text-slate-300" />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Available</span>
+                </div>
               )}
-              {leftRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+              <div className="h-6 w-0.5 bg-slate-300"></div>
             </div>
           </div>
 
-          {/* Children under L1 Right */}
-          <div className="w-1/2 flex justify-around relative">
-            <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>
-            <div className="flex flex-col items-center w-1/2">
-              <div className="h-6 w-0.5 bg-slate-300"></div>
-              {rightL1 ? getNode(level2, rightL1.id, 'left') : (
-                <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
-              )}
-              {rightLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+          {/* Level 2 (4 nodes) */}
+          <div className="w-full flex justify-around relative">
+            {/* Children under L1 Left */}
+            <div className="w-1/2 flex justify-around relative">
+              <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>
+              <div className="flex flex-col items-center w-1/2">
+                <div className="h-6 w-0.5 bg-slate-300"></div>
+                {leftL1 ? getNode(level2, leftL1.id, 'left') : (
+                  <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
+                )}
+                {leftLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+              </div>
+              <div className="flex flex-col items-center w-1/2">
+                <div className="h-6 w-0.5 bg-slate-300"></div>
+                {leftL1 ? getNode(level2, leftL1.id, 'right') : (
+                  <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
+                )}
+                {leftRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+              </div>
             </div>
-            <div className="flex flex-col items-center w-1/2">
-              <div className="h-6 w-0.5 bg-slate-300"></div>
-              {rightL1 ? getNode(level2, rightL1.id, 'right') : (
-                <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
-              )}
-              {rightRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+
+            {/* Children under L1 Right */}
+            <div className="w-1/2 flex justify-around relative">
+              <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>
+              <div className="flex flex-col items-center w-1/2">
+                <div className="h-6 w-0.5 bg-slate-300"></div>
+                {rightL1 ? getNode(level2, rightL1.id, 'left') : (
+                  <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
+                )}
+                {rightLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+              </div>
+              <div className="flex flex-col items-center w-1/2">
+                <div className="h-6 w-0.5 bg-slate-300"></div>
+                {rightL1 ? getNode(level2, rightL1.id, 'right') : (
+                  <div className="w-24 p-2 bg-slate-50/50 border border-slate-100 rounded-xl text-center text-[8px] text-slate-300 uppercase">Locked</div>
+                )}
+                {rightRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+              </div>
+            </div>
+          </div>
+
+          {/* Level 3 (8 nodes) */}
+          <div className="w-full flex justify-around relative">
+            {/* Group 1: under leftLeftL2 */}
+            <div className="w-1/4 flex justify-around relative">
+              {leftLeftL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
+              <div className="flex flex-col items-center w-1/2">
+                {leftLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {leftLeftL2 ? getNode(level3, leftLeftL2.id, 'left', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
+              <div className="flex flex-col items-center w-1/2">
+                {leftLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {leftLeftL2 ? getNode(level3, leftLeftL2.id, 'right', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
+            </div>
+
+            {/* Group 2: under leftRightL2 */}
+            <div className="w-1/4 flex justify-around relative">
+              {leftRightL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
+              <div className="flex flex-col items-center w-1/2">
+                {leftRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {leftRightL2 ? getNode(level3, leftRightL2.id, 'left', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
+              <div className="flex flex-col items-center w-1/2">
+                {leftRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {leftRightL2 ? getNode(level3, leftRightL2.id, 'right', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
+            </div>
+
+            {/* Group 3: under rightLeftL2 */}
+            <div className="w-1/4 flex justify-around relative">
+              {rightLeftL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
+              <div className="flex flex-col items-center w-1/2">
+                {rightLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {rightLeftL2 ? getNode(level3, rightLeftL2.id, 'left', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
+              <div className="flex flex-col items-center w-1/2">
+                {rightLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {rightLeftL2 ? getNode(level3, rightLeftL2.id, 'right', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
+            </div>
+
+            {/* Group 4: under rightRightL2 */}
+            <div className="w-1/4 flex justify-around relative">
+              {rightRightL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
+              <div className="flex flex-col items-center w-1/2">
+                {rightRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {rightRightL2 ? getNode(level3, rightRightL2.id, 'left', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
+              <div className="flex flex-col items-center w-1/2">
+                {rightRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
+                {rightRightL2 ? getNode(level3, rightRightL2.id, 'right', true) : (
+                  <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Level 3 (8 nodes) */}
-        <div className="w-full flex justify-around relative">
-          {/* Group 1: under leftLeftL2 */}
-          <div className="w-1/4 flex justify-around relative">
-            {leftLeftL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
-            <div className="flex flex-col items-center w-1/2">
-              {leftLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {leftLeftL2 ? getNode(level3, leftLeftL2.id, 'left', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-            <div className="flex flex-col items-center w-1/2">
-              {leftLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {leftLeftL2 ? getNode(level3, leftLeftL2.id, 'right', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-          </div>
-
-          {/* Group 2: under leftRightL2 */}
-          <div className="w-1/4 flex justify-around relative">
-            {leftRightL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
-            <div className="flex flex-col items-center w-1/2">
-              {leftRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {leftRightL2 ? getNode(level3, leftRightL2.id, 'left', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-            <div className="flex flex-col items-center w-1/2">
-              {leftRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {leftRightL2 ? getNode(level3, leftRightL2.id, 'right', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-          </div>
-
-          {/* Group 3: under rightLeftL2 */}
-          <div className="w-1/4 flex justify-around relative">
-            {rightLeftL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
-            <div className="flex flex-col items-center w-1/2">
-              {rightLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {rightLeftL2 ? getNode(level3, rightLeftL2.id, 'left', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-            <div className="flex flex-col items-center w-1/2">
-              {rightLeftL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {rightLeftL2 ? getNode(level3, rightLeftL2.id, 'right', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-          </div>
-
-          {/* Group 4: under rightRightL2 */}
-          <div className="w-1/4 flex justify-around relative">
-            {rightRightL2 && <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>}
-            <div className="flex flex-col items-center w-1/2">
-              {rightRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {rightRightL2 ? getNode(level3, rightRightL2.id, 'left', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-            <div className="flex flex-col items-center w-1/2">
-              {rightRightL2 && <div className="h-6 w-0.5 bg-slate-300"></div>}
-              {rightRightL2 ? getNode(level3, rightRightL2.id, 'right', true) : (
-                <div className="w-[84px] h-[36px] flex items-center justify-center border border-slate-100 rounded-xl text-center text-[7px] text-slate-300 uppercase">Locked</div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
       </div>
     );
   };
@@ -316,9 +316,9 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
           if (!isUnlocked) {
             return (
               <div key={slot.number} className="glass-card bg-slate-50 border border-slate-200/50 rounded-3xl p-6 shadow-none flex flex-col items-center justify-center space-y-3 opacity-60">
-                 <ShieldCheck className="w-8 h-8 text-slate-300" />
-                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Locked</p>
-                 <p className="text-[10px] text-slate-400 text-center">Activate Slot {slot.number - 1} first</p>
+                <ShieldCheck className="w-8 h-8 text-slate-300" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Locked</p>
+                <p className="text-[10px] text-slate-400 text-center">Activate Slot {slot.number - 1} first</p>
               </div>
             );
           }
@@ -327,11 +327,10 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
             <div
               key={slot.number}
               onClick={() => setSelectedSlotNum(slot.number)}
-              className={`glass-card bg-white border rounded-3xl p-6 shadow-sm space-y-6 cursor-pointer transition-all duration-200 relative overflow-hidden ${
-                isSelected
+              className={`glass-card bg-white border rounded-3xl p-6 shadow-sm space-y-6 cursor-pointer transition-all duration-200 relative overflow-hidden ${isSelected
                   ? 'border-sky-500 ring-2 ring-sky-500/15'
                   : 'border-slate-200/60 hover:border-slate-300'
-              }`}
+                }`}
             >
               {isActive && (
                 <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider">
@@ -390,7 +389,7 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
         <div className="pb-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              Vault Matrix Tree (Slot {selectedSlotNum})
+              Tree (Slot {selectedSlotNum})
               {activeSlots.filter(s => s.slotNumber === selectedSlotNum).length > 0 && (
                 <span className="text-xs font-bold text-sky-600 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
                   Cycle {activeSlots.filter(s => s.slotNumber === selectedSlotNum).length}
@@ -402,7 +401,7 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-full w-fit">
-            <Layers className="w-3.5 h-3.5" /> 3-Level Matrix
+            <Layers className="w-3.5 h-3.5" /> 3-Level
           </span>
         </div>
 

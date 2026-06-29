@@ -29,7 +29,7 @@ const usdtAbi = [
 export default function DepositSync({ adminAddress }: DepositSyncProps) {
   const router = useRouter();
   const { isConnected } = useAccount();
-  
+
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState<string>('100');
@@ -66,9 +66,9 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
       setStatus({ type: 'error', message: 'Please enter a valid amount.' });
       return;
     }
-    
+
     setStatus({ type: 'info', message: 'Please confirm the transaction in your wallet...' });
-    
+
     try {
       await writeContractAsync({
         address: USDT_CONTRACT_ADDRESS,
@@ -78,15 +78,15 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
       });
     } catch (err: any) {
       const errorMsg = err.message || '';
-      
+
       // Check if user rejected
       if (errorMsg.includes('User rejected') || errorMsg.includes('rejected')) {
         setStatus({ type: 'error', message: 'Transaction was rejected by your wallet.' });
-      } 
+      }
       // Check for insufficient balance
       else if (errorMsg.includes('exceeds balance') || errorMsg.includes('insufficient funds')) {
         setStatus({ type: 'error', message: 'Insufficient USDT balance in your wallet.' });
-      } 
+      }
       else {
         setStatus({ type: 'error', message: 'Failed to initiate transaction. Check your balance or network.' });
       }
@@ -137,24 +137,24 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Direct Wallet Deposit Section */}
       <div className="p-6 bg-white border border-emerald-200/60 shadow-sm rounded-3xl space-y-5 relative overflow-hidden">
         {/* Background Accent */}
         <div className="absolute top-0 right-0 p-8 opacity-5">
           <Send className="w-32 h-32 text-emerald-500" />
         </div>
-        
+
         <div className="relative z-10">
           <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            Direct Web3 Deposit
+            Deposit
           </h3>
           <p className="text-xs text-slate-500 mt-1">
             Send USDT directly from your connected wallet. Fast, secure, and automatic.
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3 relative z-10">
           <div className="relative flex-1">
             <input
@@ -168,7 +168,7 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
               USDT
             </div>
           </div>
-          
+
           <button
             onClick={handleDirectDeposit}
             disabled={isWritePending || isConfirming || !isConnected}
@@ -180,9 +180,9 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
               <Send className="w-4.5 h-4.5" />
             )}
             <span>
-              {isWritePending ? 'Confirm in Wallet...' : 
-               isConfirming ? 'Confirming Block...' : 
-               !isConnected ? 'Wallet Disconnected' : 'Send USDT'}
+              {isWritePending ? 'Confirm in Wallet...' :
+                isConfirming ? 'Confirming Block...' :
+                  !isConnected ? 'Wallet Disconnected' : 'Send USDT'}
             </span>
           </button>
         </div>
@@ -191,13 +191,12 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
       {/* Status Messages */}
       {status.type !== 'idle' && (
         <div
-          className={`p-4 rounded-2xl flex items-start gap-3 text-xs font-semibold border animate-fade-in ${
-            status.type === 'success'
+          className={`p-4 rounded-2xl flex items-start gap-3 text-xs font-semibold border animate-fade-in ${status.type === 'success'
               ? 'bg-emerald-50 border-emerald-150 text-emerald-800'
               : status.type === 'error'
-              ? 'bg-rose-50 border-rose-150 text-rose-800'
-              : 'bg-sky-50 border-sky-150 text-sky-800'
-          }`}
+                ? 'bg-rose-50 border-rose-150 text-rose-800'
+                : 'bg-sky-50 border-sky-150 text-sky-800'
+            }`}
         >
           {status.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />

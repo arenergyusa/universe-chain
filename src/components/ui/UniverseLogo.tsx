@@ -26,7 +26,7 @@ export const UniverseLogo = ({ className = "h-10 w-auto" }: { className?: string
         <stop offset="100%" stopColor="#818cf8" /> {/* indigo-400 */}
       </linearGradient>
     </defs>
-    
+
     {/* Icon Group */}
     <g>
       {/* Background Glow / Stars */}
@@ -34,7 +34,7 @@ export const UniverseLogo = ({ className = "h-10 w-auto" }: { className?: string
       <circle cx="20" cy="80" r="1.5" fill="#c084fc" opacity="0.6" />
       <circle cx="85" cy="75" r="2.5" fill="#38bdf8" opacity="0.7" />
       <circle cx="15" cy="25" r="1.5" fill="#ffffff" opacity="0.5" />
-      
+
       {/* Back part of ring */}
       <path
         d="M12 40 C30 25, 70 25, 88 40"
@@ -46,7 +46,7 @@ export const UniverseLogo = ({ className = "h-10 w-auto" }: { className?: string
 
       {/* Planet Body */}
       <circle cx="50" cy="50" r="25" fill="url(#planetGrad)" />
-      
+
       {/* Highlight for depth */}
       <path
         d="M32 32 A25 25 0 0 1 68 68 A25 25 0 0 0 32 32 Z"
@@ -66,7 +66,7 @@ export const UniverseLogo = ({ className = "h-10 w-auto" }: { className?: string
 
     {/* Text Group */}
     <text x="110" y="66" fontFamily="Arial, sans-serif" fontSize="48" fontWeight="bold" letterSpacing="-1">
-      <tspan fill="url(#textGrad1)">Universe</tspan>
+      <tspan fill="url(#textGrad1)">Universe </tspan>
       <tspan fill="url(#textGrad2)" fontWeight="900">Chain</tspan>
     </text>
   </svg>

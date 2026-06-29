@@ -71,10 +71,10 @@ export default async function SlotsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          Vault Slots
+          Slots
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Activate and manage your secure account cycles, and track downline matrix positions.
+          Activate and manage your secure account cycles, and track downline positions.
         </p>
       </div>
 

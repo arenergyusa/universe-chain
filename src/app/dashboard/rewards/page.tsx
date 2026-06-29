@@ -9,7 +9,7 @@ export default function RewardsPage() {
   const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
   const [claiming, setClaiming] = useState<string | null>(null);
-  
+
   const { data, isLoading: loading } = useQuery({
     queryKey: ['auth-me'],
     queryFn: async () => {
@@ -41,13 +41,13 @@ export default function RewardsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type })
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.error || 'Failed to claim reward');
       }
-      
+
       alert(data.message);
       queryClient.invalidateQueries({ queryKey: ['auth-me'] }); // refresh stats
     } catch (error: unknown) {
@@ -85,7 +85,7 @@ export default function RewardsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+
         {/* Referral Rewards Card */}
         <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm flex flex-col">
           <div className="flex items-start justify-between mb-6">
@@ -98,12 +98,12 @@ export default function RewardsPage() {
               <div className="text-xs text-slate-500">per 2 referrals</div>
             </div>
           </div>
-          
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Direct Referral Bonus</h3>
+
+          <h3 className="text-lg font-bold text-slate-900 mb-2">Referral Bonus</h3>
           <p className="text-sm text-slate-500 mb-6 flex-grow">
             For every 2 active direct referrals you bring into the Universe Chain, you earn a special bonus of {configs.directReward} USDT!
           </p>
-          
+
           <div className="bg-slate-50 rounded-2xl p-4 mb-6">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-slate-600">Total Referrals</span>
@@ -122,11 +122,10 @@ export default function RewardsPage() {
           <button
             onClick={() => claimReward('referral')}
             disabled={eligibleReferralClaims <= 0 || claiming !== null}
-            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-              eligibleReferralClaims > 0 && claiming === null
-                ? 'bg-gradient-to-r from-indigo-600 to-sky-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-            }`}
+            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${eligibleReferralClaims > 0 && claiming === null
+              ? 'bg-gradient-to-r from-indigo-600 to-sky-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              }`}
           >
             {claiming === 'referral' ? (
               <span className="flex items-center gap-2">
@@ -156,18 +155,18 @@ export default function RewardsPage() {
             <div className="text-right">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reward Rate</div>
               <div className="text-xl font-black text-slate-900">{configs.slotReward} USDT</div>
-              <div className="text-xs text-slate-500">per full board</div>
+              <div className="text-xs text-slate-500">per full slot</div>
             </div>
           </div>
-          
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Board Completion Bonus</h3>
+
+          <h3 className="text-lg font-bold text-slate-900 mb-2">Slots Bonus</h3>
           <p className="text-sm text-slate-500 mb-6 flex-grow">
-            When your 14-member working board is completely filled, you earn an extra bonus of {configs.slotReward} USDT as a reward for your leadership!
+            When your 14-member working slot is completely filled, you earn an extra bonus of {configs.slotReward} USDT as a reward for your leadership!
           </p>
-          
+
           <div className="bg-slate-50 rounded-2xl p-4 mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-slate-600">Boards Completed</span>
+              <span className="text-sm font-medium text-slate-600">Slots Completed</span>
               <span className="font-bold text-slate-900">{stats.completedSlots}</span>
             </div>
             <div className="flex justify-between items-center mb-2">
@@ -183,11 +182,10 @@ export default function RewardsPage() {
           <button
             onClick={() => claimReward('slot')}
             disabled={eligibleSlotClaims <= 0 || claiming !== null}
-            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-              eligibleSlotClaims > 0 && claiming === null
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-            }`}
+            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${eligibleSlotClaims > 0 && claiming === null
+              ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              }`}
           >
             {claiming === 'slot' ? (
               <span className="flex items-center gap-2">
