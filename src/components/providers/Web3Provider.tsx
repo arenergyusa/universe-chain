@@ -44,6 +44,14 @@ function SessionManager() {
   const { switchChain } = useSwitchChain();
   const router = useRouter();
   const pathname = usePathname();
+  const wasConnected = React.useRef(false);
+
+  // Track previous connection state to detect a real transition
+  React.useEffect(() => {
+    if (isConnected) {
+      wasConnected.current = true;
+    }
+  }, [isConnected]);
 
   // Force switch to BSC network if connected to a different network
   React.useEffect(() => {
@@ -52,16 +60,23 @@ function SessionManager() {
     }
   }, [isConnected, chainId, switchChain]);
 
-  // Auto logout if wallet is disconnected while in dashboard
+  // Auto logout if wallet transitions to disconnected while in dashboard
   React.useEffect(() => {
-    if (isDisconnected && pathname?.startsWith('/dashboard')) {
+    const isDashboard = pathname === '/dashboard' || pathname?.startsWith('/dashboard/');
+    
+    if (isDisconnected && wasConnected.current && isDashboard) {
       const handleLogout = async () => {
         try {
-          await fetch('/api/auth/logout', { method: 'POST' });
-          router.push('/');
-          router.refresh();
+          const res = await fetch('/api/auth/logout', { method: 'POST' });
+          if (res.ok) {
+            wasConnected.current = false;
+            router.push('/');
+            router.refresh();
+          } else {
+            console.error('Auto-logout API failed with status:', res.status);
+          }
         } catch (err) {
-          console.error('Auto-logout failed:', err);
+          console.error('Auto-logout request failed:', err);
         }
       };
       handleLogout();
