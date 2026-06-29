@@ -40,7 +40,7 @@ export default async function WithdrawPage() {
           Withdraw Funds
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Securely transfer USDT from your Universe Chain account to wallet.
+          Securely transfer USDT from your Universe Chain account to your wallet.
         </p>
       </div>
 

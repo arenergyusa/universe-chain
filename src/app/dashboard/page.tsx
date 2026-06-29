@@ -201,7 +201,7 @@ export default async function DashboardOverview() {
             </div>
             <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight">Invite & Earn</h3>
             <p className="text-indigo-200 text-xs leading-relaxed max-w-sm">
-              Share your unique referral link to build your binary matrix. Earn commissions instantly, PLUS claim bonus rewards for direct referrals and slots completions!
+              Share your unique referral link to build your binary matrix. Earn commissions instantly, PLUS claim bonus rewards for direct referrals and slot completions!
             </p>
           </div>
 
@@ -330,12 +330,12 @@ export default async function DashboardOverview() {
                 <div className="flex items-center space-x-4">
                   <div className={`w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center border ${tx.type === 'deposit' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                     tx.type === 'withdrawal' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                      tx.type === 'referral_income' || tx.type === 'slot_reward' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                      tx.type === 'referral_income' || tx.type === 'slot_reward' || tx.type === 'pair_bonus' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
                         'bg-slate-50 text-slate-600 border-slate-200'
                     }`}>
                     {tx.type === 'deposit' ? <ArrowDownCircle className="w-5 h-5" /> :
                       tx.type === 'withdrawal' ? <ArrowUpCircle className="w-5 h-5" /> :
-                        tx.type === 'referral_income' ? <Gift className="w-5 h-5" /> :
+                        tx.type === 'referral_income' || tx.type === 'pair_bonus' ? <Gift className="w-5 h-5" /> :
                           <Layers className="w-5 h-5" />}
                   </div>
                   <div>

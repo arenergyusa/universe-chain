@@ -163,7 +163,7 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
           {amt > 0 && (
             <div className="flex flex-col space-y-1.5 p-3.5 bg-slate-50 border border-slate-100 rounded-xl mt-3">
               <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Network/Withdrawal Fee ({feePercentage}%)</span>
+                <span>Platform Withdrawal Fee ({feePercentage}%)</span>
                 <span className="font-mono text-rose-500 font-bold">- {feeAmount.toFixed(2)} USDT</span>
               </div>
               <div className="flex items-center justify-between text-xs font-bold text-slate-800 pt-1 border-t border-slate-200">
