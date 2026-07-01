@@ -16,11 +16,13 @@ import {
   ArrowRightLeft,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Share2,
+  Link as LinkIcon,
+  Gift
 } from 'lucide-react';
 import DepositSync from '@/components/dashboard/DepositSync';
 import CopyButton from '@/components/dashboard/CopyButton';
-import { Share2, Link as LinkIcon, Gift } from 'lucide-react';
 
 export default async function DashboardOverview() {
   const session = await getSession();
@@ -78,7 +80,7 @@ export default async function DashboardOverview() {
           <div>
             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Account Status</div>
             <div className="text-xs font-bold text-slate-800">
-              {user.status === 'active' ? 'Fully Active' : 'Inactive (Awaiting Slot)'}
+              {user.status === 'active' ? 'Fully Active' : 'Inactive (Awaiting Activation)'}
             </div>
           </div>
         </div>
@@ -92,9 +94,9 @@ export default async function DashboardOverview() {
               <AlertCircle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-800">Activate Your Account</h3>
+              <h3 className="text-base font-bold text-slate-800">Activate Your ID</h3>
               <p className="text-slate-500 text-sm leading-relaxed max-w-xl">
-                Your account is currently inactive. To start building your community and receiving rewards, you need to open your first slot for 100 USDT.
+                Your account is currently inactive. Activate your ID with a one-time payment to start building your community and receiving rewards.
               </p>
             </div>
           </div>
@@ -181,28 +183,12 @@ export default async function DashboardOverview() {
             </div>
             <div className="text-[10px] font-bold text-slate-400 mt-1">Direct Connections</div>
           </div>
-          {/* Capacity Progress Bar */}
-          {activeSlotsCount > 0 && (() => {
-            const maxDirects = activeSlotsCount * 2;
-            const pct = Math.min(100, Math.round((user.directReferralCount / maxDirects) * 100));
-            return (
-              <div className="space-y-1.5 pt-1 border-t border-slate-100">
-                <div className="flex justify-between text-[10px] font-bold">
-                  <span className="text-slate-400">Capacity</span>
-                  <span className={pct >= 100 ? 'text-rose-500' : 'text-slate-600'}>{user.directReferralCount} / {maxDirects}</span>
-                </div>
-                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${pct >= 100 ? 'bg-rose-400' : pct >= 70 ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                {pct >= 100 && (
-                  <p className="text-[10px] text-rose-500 font-bold">Open a new slot to invite more</p>
-                )}
-              </div>
-            );
-          })()}
+          {/* Slots auto-create as referrals fill up */}
+          {activeSlotsCount > 0 && (
+            <div className="space-y-1 pt-1 border-t border-slate-100">
+              <div className="text-[10px] font-bold text-emerald-500">Slots auto-expand as you grow</div>
+            </div>
+          )}
         </div>
       </div>
 

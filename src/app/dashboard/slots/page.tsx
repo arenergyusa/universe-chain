@@ -15,6 +15,7 @@ export default async function SlotsPage() {
     where: { id: session.userId },
     include: {
       slots: {
+        orderBy: { createdAt: 'asc' },
         include: {
           members: {
             include: {
@@ -34,7 +35,7 @@ export default async function SlotsPage() {
 
   const userBalance = user.internalBalance.toNumber();
 
-  // Map slots to the structure expected by SlotsManager
+  // Map ALL slots (active, completed, retoped) to the structure expected by SlotsManager
   const mappedSlots = user.slots.map((slot) => ({
     id: slot.id,
     slotNumber: slot.slotNumber,
@@ -50,22 +51,13 @@ export default async function SlotsPage() {
     })),
   }));
 
-  // Fetch dynamic slot open & retop amounts from cache
-  const slotOpenAmount = parseFloat(await getConfig('SLOT_OPEN_AMOUNT', 100));
-  const retopAmount = parseFloat(await getConfig('RETOP_AMOUNT', 100));
+  // Determine activation state
+  const isActivated = user.status === 'active' && user.slots.length > 0;
+  const hasCompletedSlot = user.slots.some(s => s.status === 'completed');
 
-  // Generate dynamic unlimited slots up to the next available one
-  const activeSlotNumbers = mappedSlots.map(s => s.slotNumber);
-  const maxActiveSlot = activeSlotNumbers.length > 0 ? Math.max(...activeSlotNumbers) : 0;
-  const nextSlotNumber = maxActiveSlot + 1;
-
-  const slotDetails = [];
-  for (let i = 1; i <= nextSlotNumber; i++) {
-    // Check if user has a completed slot for this number
-    const isRetop = mappedSlots.some(s => s.slotNumber === i && (s.status === 'completed' || s.status === 'retoped'));
-    const cost = isRetop ? retopAmount : slotOpenAmount;
-    slotDetails.push({ number: i, cost: cost, label: `Vault Matrix ${i}` });
-  }
+  // Fetch costs from config cache
+  const activationCost = parseFloat(await getConfig('SLOT_OPEN_AMOUNT', 100));
+  const retopCost = parseFloat(await getConfig('RETOP_AMOUNT', 100));
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -74,11 +66,20 @@ export default async function SlotsPage() {
           Slots
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Activate and manage your secure account cycles, and track downline positions.
+          {isActivated
+            ? 'View your active matrix boards and track downline positions.'
+            : 'Activate your ID to start building your community matrix.'}
         </p>
       </div>
 
-      <SlotsManager userBalance={userBalance} activeSlots={mappedSlots} slotDetails={slotDetails} />
+      <SlotsManager
+        userBalance={userBalance}
+        allSlots={mappedSlots}
+        isActivated={isActivated}
+        hasCompletedSlot={hasCompletedSlot}
+        activationCost={activationCost}
+        retopCost={retopCost}
+      />
     </div>
   );
 }

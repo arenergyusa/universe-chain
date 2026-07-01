@@ -32,6 +32,7 @@ export default function DashboardNavbar({ user }: DashboardNavbarProps) {
   const navLinks = [
     { name: 'Overview', href: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { name: 'Slots', href: '/dashboard/slots', icon: <Layers className="w-4 h-4" /> },
+    { name: 'Team', href: '/dashboard/team', icon: <Users2 className="w-4 h-4" /> },
     { name: 'Rewards', href: '/dashboard/rewards', icon: <Gift className="w-4 h-4" /> },
     { name: 'Deposit', href: '/dashboard/deposit', icon: <ArrowDownCircle className="w-4 h-4" /> },
     { name: 'Withdraw', href: '/dashboard/withdraw', icon: <ArrowUpCircle className="w-4 h-4" /> },

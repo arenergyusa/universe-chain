@@ -18,8 +18,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   // Check if the connected wallet is the admin wallet
-  const adminAddress = process.env.ADMIN_WALLET_ADDRESS?.toLowerCase();
-  const userAddress = session.walletAddress.toLowerCase();
+  const adminAddress = process.env.ADMIN_WALLET_ADDRESS?.trim().replace(/['"]/g, '').toLowerCase();
+  const userAddress = session.walletAddress.trim().toLowerCase();
+
+  console.log('[Admin Check] Admin env:', JSON.stringify(process.env.ADMIN_WALLET_ADDRESS));
+  console.log('[Admin Check] Admin parsed:', adminAddress);
+  console.log('[Admin Check] User wallet:', userAddress);
+  console.log('[Admin Check] Match:', adminAddress === userAddress);
 
   if (adminAddress !== userAddress) {
     return (
