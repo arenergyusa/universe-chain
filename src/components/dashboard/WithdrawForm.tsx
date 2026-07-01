@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Wallet, ShieldCheck, Loader2, ArrowUpRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface WithdrawFormProps {
   balance: number;
@@ -16,8 +17,6 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
 
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const amt = parseFloat(amount) || 0;
   const feeAmount = (amt * feePercentage) / 100;
@@ -25,28 +24,26 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     if (!isConnected || !address) {
-      setError('Please connect your Web3 wallet first.');
+      toast.error('Please connect your Web3 wallet first.');
       return;
     }
 
     const amt = parseFloat(amount);
 
     if (isNaN(amt) || amt <= 0) {
-      setError('Please enter a valid positive amount.');
+      toast.error('Please enter a valid positive amount.');
       return;
     }
 
     if (amt > balance) {
-      setError('Insufficient balance in your internal vault.');
+      toast.error('Insufficient balance in your internal vault.');
       return;
     }
 
     if (amt < 10) {
-      setError('Minimum withdrawal amount is 10 USDT.');
+      toast.error('Minimum withdrawal amount is 10 USDT.');
       return;
     }
 
@@ -68,11 +65,11 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
         throw new Error(data.error || 'Failed to process withdrawal.');
       }
 
-      setSuccess(`Successfully initiated withdrawal of ${amt.toFixed(2)} USDT! Your transaction is processing.`);
+      toast.success(`Successfully initiated withdrawal of ${amt.toFixed(2)} USDT! Your transaction is processing.`);
       setAmount('');
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+      toast.error(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
@@ -89,20 +86,6 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
           <p className="text-slate-400 text-xs mt-0.5">Withdraw USDT directly to your connected Web3 wallet.</p>
         </div>
       </div>
-
-      {error && (
-        <div className="flex items-start space-x-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-xs">
-          <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
-          <span className="font-semibold">{error}</span>
-        </div>
-      )}
-
-      {success && (
-        <div className="flex items-start space-x-2.5 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl text-xs">
-          <CheckCircle className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
-          <span className="font-semibold">{success}</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Destination Address (Enforced via Wagmi) */}
@@ -133,9 +116,11 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
             <label htmlFor="amount" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
               Amount (USDT)
             </label>
-            <span className="text-[10px] font-bold text-slate-400">
-              Available: {balance.toFixed(2)} USDT
-            </span>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+              <span>Min: 10 USDT</span>
+              <span className="text-slate-200">|</span>
+              <span>Available: {balance.toFixed(2)} USDT</span>
+            </div>
           </div>
           <div className="relative">
             <input

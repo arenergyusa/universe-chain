@@ -54,7 +54,7 @@ export default async function HistoryPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Transaction History

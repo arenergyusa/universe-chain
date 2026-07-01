@@ -96,12 +96,9 @@ export default function Home() {
     <>
       <Navbar />
 
-      <main className="flex-grow pt-24">
+      <main className="flex-grow">
         {/* Hero Section */}
-        <section className="relative overflow-hidden py-16 md:py-24 bg-gradient-to-b from-sky-50/50 via-white to-slate-50/30">
-          <div className="absolute top-1/4 left-[10%] w-96 h-96 bg-sky-200/30 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute top-1/3 right-[10%] w-80 h-80 bg-emerald-200/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
-
+        <section className="relative overflow-hidden pt-32 pb-16 md:pt-40 md:pb-24 bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
@@ -112,7 +109,7 @@ export default function Home() {
 
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
                   Build Something <br />
-                  <span className="gradient-text">Meaningful Together</span> <br />
+                  <span className="text-blue-600">Meaningful Together</span> <br />
                   with Universe Chain
                 </h1>
 
@@ -149,9 +146,9 @@ export default function Home() {
               {/* Hero Visual — Community Growth Card */}
               <div className="lg:col-span-5 flex justify-center">
                 <div className="relative w-full max-w-md">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-sky-400 to-emerald-400 rounded-3xl opacity-10 blur-xl transform rotate-2"></div>
+                  <div className="absolute inset-0 bg-slate-50 rounded-lg transform rotate-2"></div>
 
-                  <div className="glass-card rounded-3xl p-5 sm:p-6 relative border border-slate-200/80 shadow-xl space-y-6">
+                  <div className="glass-card rounded-lg p-5 sm:p-6 relative border border-slate-200 shadow-sm space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                       <div className="flex items-center space-x-2">
                         <Users className="w-5 h-5 text-sky-600" />
@@ -163,38 +160,83 @@ export default function Home() {
                     </div>
 
                     {/* Community Tree Visual */}
-                    <div className="flex flex-col items-center">
-                      <div className="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-white font-bold shadow-md shadow-sky-500/20 text-xs z-10 animate-float">
+                    <div className="flex flex-col items-center pt-2">
+                      <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center text-white font-bold text-xs z-10 shadow-md">
                         You
                       </div>
-                      <div className="w-0.5 h-6 bg-slate-200"></div>
+                      <div className="w-px h-4 bg-slate-200"></div>
 
-                      <div className="flex justify-between w-4/5 relative">
-                        <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-200"></div>
+                      <div className="flex justify-between w-full relative">
+                        <div className="absolute top-0 left-[25%] right-[25%] h-px bg-slate-200"></div>
 
+                        {/* Level 1 - Left Node */}
                         <div className="flex flex-col items-center w-1/2">
-                          <div className="w-10 h-10 rounded-full bg-sky-100 border border-sky-300 flex items-center justify-center text-sky-700 font-extrabold text-xs shadow-sm z-10">
-                            Sam
-                          </div>
-                          <div className="w-0.5 h-4 bg-slate-100"></div>
-                          <div className="flex justify-between w-full relative">
-                            <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-100"></div>
-                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-[10px] z-10">Ali</div>
-                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-[10px] z-10">Raj</div>
+                          <div className="w-8 h-8 rounded-full bg-sky-400 shadow-sm z-10 border-2 border-white"></div>
+                          <div className="w-px h-4 bg-slate-200"></div>
+                          
+                          <div className="flex justify-between w-[85%] relative">
+                            <div className="absolute top-0 left-[25%] right-[25%] h-px bg-slate-200"></div>
+                            
+                            {/* Level 2 - L1 */}
+                            <div className="flex flex-col items-center w-1/2">
+                              <div className="w-6 h-6 rounded-full bg-sky-300 shadow-sm z-10 border-2 border-white"></div>
+                              <div className="w-px h-3 bg-slate-200"></div>
+                              
+                              <div className="flex justify-between w-[75%] relative">
+                                <div className="absolute top-0 left-[25%] right-[25%] h-px bg-slate-200"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                              </div>
+                            </div>
+                            
+                            {/* Level 2 - L2 */}
+                            <div className="flex flex-col items-center w-1/2">
+                              <div className="w-6 h-6 rounded-full bg-sky-300 shadow-sm z-10 border-2 border-white"></div>
+                              <div className="w-px h-3 bg-slate-200"></div>
+                              
+                              <div className="flex justify-between w-[75%] relative">
+                                <div className="absolute top-0 left-[25%] right-[25%] h-px bg-slate-200"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
+                        {/* Level 1 - Right Node */}
                         <div className="flex flex-col items-center w-1/2">
-                          <div className="w-10 h-10 rounded-full bg-sky-100 border border-sky-300 flex items-center justify-center text-sky-700 font-extrabold text-xs shadow-sm z-10">
-                            Priya
-                          </div>
-                          <div className="w-0.5 h-4 bg-slate-100"></div>
-                          <div className="flex justify-between w-full relative">
-                            <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-100"></div>
-                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-[10px] z-10">Noor</div>
-                            <div className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold text-[10px] z-10">+</div>
+                          <div className="w-8 h-8 rounded-full bg-sky-400 shadow-sm z-10 border-2 border-white"></div>
+                          <div className="w-px h-4 bg-slate-200"></div>
+                          
+                          <div className="flex justify-between w-[85%] relative">
+                            <div className="absolute top-0 left-[25%] right-[25%] h-px bg-slate-200"></div>
+                            
+                            {/* Level 2 - R1 */}
+                            <div className="flex flex-col items-center w-1/2">
+                              <div className="w-6 h-6 rounded-full bg-sky-300 shadow-sm z-10 border-2 border-white"></div>
+                              <div className="w-px h-3 bg-slate-200"></div>
+                              
+                              <div className="flex justify-between w-[75%] relative">
+                                <div className="absolute top-0 left-[25%] right-[25%] h-px bg-slate-200"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                              </div>
+                            </div>
+                            
+                            {/* Level 2 - R2 */}
+                            <div className="flex flex-col items-center w-1/2">
+                              <div className="w-6 h-6 rounded-full bg-sky-300 shadow-sm z-10 border-2 border-white"></div>
+                              <div className="w-px h-3 bg-slate-200"></div>
+                              
+                              <div className="flex justify-between w-[75%] relative">
+                                <div className="absolute top-0 left-[25%] right-[25%] h-px bg-slate-200"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                                <div className="w-4 h-4 rounded-full bg-slate-200 shadow-sm z-10 border-2 border-white"></div>
+                              </div>
+                            </div>
                           </div>
                         </div>
+
                       </div>
                     </div>
 
@@ -249,7 +291,7 @@ export default function Home() {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-20 bg-slate-50/50 relative overflow-hidden">
+        <section id="how-it-works" className="py-20 bg-white relative overflow-hidden border-b border-slate-200/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
               <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">How It Works</h2>
@@ -276,60 +318,73 @@ export default function Home() {
         </section>
 
         {/* CTA / Plan Section */}
-        <section className="py-20 bg-white">
+        <section className="py-24 bg-slate-50 border-y border-slate-200/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-              <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">Get Started</h2>
-              <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                One activation. Unlimited possibilities.
-              </p>
-              <p className="text-slate-500 text-base leading-relaxed">
-                A single 100 USDT activation opens up your personal dashboard, your invite link, and your journey with Universe Chain. No hidden fees, no surprises.
-              </p>
-            </div>
-
-            <div className="flex justify-center">
-              <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-lg shadow-slate-100/50 transform hover:scale-[1.01] transition-transform">
-                <div className="p-8 bg-slate-50 border-b border-slate-200/80 text-center space-y-4">
-                  <h3 className="text-xl font-bold text-slate-800">Community Activation</h3>
-                  <div className="inline-flex items-baseline">
-                    <span className="text-5xl font-black text-slate-900">100</span>
-                    <span className="text-lg font-bold text-slate-500 ml-2">USDT</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6 text-center lg:text-left">
+                <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">Get Started</h2>
+                <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                  One activation. <br className="hidden lg:block" /> Unlimited possibilities.
+                </h3>
+                <p className="text-slate-500 text-base leading-relaxed max-w-lg mx-auto lg:mx-0">
+                  A single 100 USDT activation opens up your personal dashboard, your invite link, and your journey with Universe Chain. No hidden fees, no surprises.
+                </p>
+                <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                  <div className="flex items-center space-x-3 bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm">
+                    <Shield className="w-6 h-6 text-emerald-500" />
+                    <div className="text-xs text-left">
+                      <strong className="block text-slate-900">Secure & Transparent</strong>
+                      <span className="text-slate-500">Powered by smart contracts</span>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">One-Time Activation</p>
                 </div>
+              </div>
 
-                <div className="p-8 space-y-6">
-                  <ul className="space-y-4">
-                    <li className="flex items-center space-x-3 text-sm text-slate-600">
-                      <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                      <span><strong>Personal dashboard</strong> with real-time activity</span>
-                    </li>
-                    <li className="flex items-center space-x-3 text-sm text-slate-600">
-                      <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                      <span><strong>Unique invite link</strong> to share with your community</span>
-                    </li>
-                    <li className="flex items-center space-x-3 text-sm text-slate-600">
-                      <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                      <span><strong>Transparent tracking</strong> of your team growth</span>
-                    </li>
-                    <li className="flex items-center space-x-3 text-sm text-slate-600">
-                      <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                      <span><strong>Automatic rewards</strong> as your community expands</span>
-                    </li>
-                    <li className="flex items-center space-x-3 text-sm text-slate-600">
-                      <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                      <span><strong>24/7 support</strong> whenever you need help</span>
-                    </li>
-                  </ul>
+              <div className="flex justify-center lg:justify-end">
+                <div className="w-full max-w-md glass-card border border-slate-100 rounded-3xl overflow-hidden shadow-lg relative">
+                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-sky-400 to-blue-600"></div>
+                  
+                  <div className="p-8 bg-white/50 border-b border-slate-100 text-center space-y-4">
+                    <h3 className="text-xl font-bold text-slate-800">Community Activation</h3>
+                    <div className="inline-flex items-baseline">
+                      <span className="text-5xl font-black text-slate-900">100</span>
+                      <span className="text-lg font-bold text-slate-500 ml-2">USDT</span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full inline-block">
+                        One-Time Activation
+                      </span>
+                    </div>
+                  </div>
 
-                  <Link
-                    href="/dashboard"
-                    className="w-full inline-flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl text-base shadow-md transition-all duration-200"
-                  >
-                    <span>Activate Now</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
+                  <div className="p-8 space-y-6 bg-white">
+                    <ul className="space-y-4">
+                      <li className="flex items-start space-x-3 text-sm text-slate-600">
+                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span><strong>Personal dashboard</strong> with real-time activity</span>
+                      </li>
+                      <li className="flex items-start space-x-3 text-sm text-slate-600">
+                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span><strong>Unique invite link</strong> to share with your community</span>
+                      </li>
+                      <li className="flex items-start space-x-3 text-sm text-slate-600">
+                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span><strong>Transparent tracking</strong> of your team growth</span>
+                      </li>
+                      <li className="flex items-start space-x-3 text-sm text-slate-600">
+                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span><strong>Automatic rewards</strong> as your community expands</span>
+                      </li>
+                    </ul>
+
+                    <Link
+                      href="/dashboard"
+                      className="glow-btn w-full inline-flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl text-base shadow-md transition-all duration-200"
+                    >
+                      <span>Activate Now</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -337,43 +392,59 @@ export default function Home() {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-20 bg-slate-50/50 border-t border-slate-200/50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center space-y-4 mb-16">
-              <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">FAQ</h2>
-              <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Got questions? We&apos;ve got answers.
-              </p>
-            </div>
+        <section className="py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
+              <div className="lg:col-span-5 space-y-6 text-center lg:text-left lg:sticky lg:top-32">
+                <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">FAQ</h2>
+                <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                  Got questions? <br className="hidden lg:block" /> We've got answers.
+                </h3>
+                <p className="text-slate-500 text-base leading-relaxed max-w-lg mx-auto lg:mx-0">
+                  If you can't find what you're looking for, feel free to reach out to our team via the contact page or community chat.
+                </p>
+                <div className="pt-2 flex justify-center lg:justify-start">
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center space-x-2 text-sm font-bold text-sky-600 hover:text-sky-700 transition-colors bg-sky-50 px-4 py-2 rounded-xl"
+                  >
+                    <span>Contact Support</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
 
-            <div className="space-y-4">
-              {faqs.map((faq, i) => (
-                <div
-                  key={i}
-                  className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden transition-all duration-200 shadow-sm"
-                >
-                  <button
-                    onClick={() => toggleFaq(i)}
-                    className="w-full flex items-center justify-between p-5 sm:p-6 text-left focus:outline-none"
-                  >
-                    <span className="font-bold text-slate-800 pr-4">{faq.question}</span>
-                    <ChevronDown
-                      className={`w-5 h-5 text-slate-400 transition-transform duration-200 flex-shrink-0 ${
-                        activeFaq === i ? 'transform rotate-180' : ''
-                      }`}
-                    />
-                  </button>
+              <div className="lg:col-span-7 space-y-4">
+                {faqs.map((faq, i) => (
                   <div
-                    className={`transition-all duration-300 ${
-                      activeFaq === i ? 'max-h-96 border-t border-slate-100' : 'max-h-0 overflow-hidden'
-                    }`}
+                    key={i}
+                    className="glass-card border border-slate-100 rounded-2xl overflow-hidden transition-all duration-200 shadow-sm"
                   >
-                    <div className="p-5 sm:p-6 text-sm text-slate-500 leading-relaxed bg-slate-50/30">
-                      {faq.answer}
+                    <button
+                      onClick={() => toggleFaq(i)}
+                      className="w-full flex items-center justify-between p-6 text-left focus:outline-none bg-white hover:bg-slate-50/50 transition-colors"
+                    >
+                      <span className="font-bold text-slate-800 pr-4 text-base">{faq.question}</span>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors flex-shrink-0 ${activeFaq === i ? 'bg-sky-100 text-sky-600' : 'bg-slate-100 text-slate-400'}`}>
+                        <ChevronDown
+                          className={`w-5 h-5 transition-transform duration-200 ${
+                            activeFaq === i ? 'transform rotate-180' : ''
+                          }`}
+                        />
+                      </div>
+                    </button>
+                    <div
+                      className={`transition-all duration-300 ${
+                        activeFaq === i ? 'max-h-96 border-t border-slate-100' : 'max-h-0 overflow-hidden'
+                      }`}
+                    >
+                      <div className="p-6 text-sm text-slate-500 leading-relaxed bg-slate-50/50">
+                        {faq.answer}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </section>

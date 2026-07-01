@@ -1,36 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f8f9fa;
+  --foreground: #202124;
   
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #202124;
   
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #202124;
   
-  --primary: #4f46e5; /* Indigo 600 */
-  --primary-hover: #4338ca; /* Indigo 700 */
+  --primary: #1a73e8; /* Google Blue */
+  --primary-hover: #1558d6;
   --primary-foreground: #ffffff;
   
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary: #f1f3f4;
+  --secondary-foreground: #202124;
   
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
+  --muted: #f8f9fa;
+  --muted-foreground: #5f6368;
   
-  --accent: #38bdf8; /* Sky 400 for positive states */
+  --accent: #1a73e8;
   --accent-foreground: #ffffff;
   
-  --destructive: #ef4444;
+  --destructive: #d93025;
   --destructive-foreground: #ffffff;
   
-  --border: #e2e8f0;
-  --input: #f1f5f9;
-  --ring: rgba(79, 70, 229, 0.2);
+  --border: #dadce0;
+  --input: #f1f3f4;
+  --ring: rgba(26, 115, 232, 0.2);
   
-  --radius: 1rem;
+  --radius: 0.375rem; /* Google uses relatively small radius */
 }
 
 @theme inline {
@@ -53,8 +53,23 @@
   --color-border: var(--border);
   --color-input: var(--input);
   
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+
+  /* Override radius values to force less rounding globally */
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.375rem;
+  --radius-2xl: 0.375rem;
+  --radius-3xl: 0.375rem;
+  
+  /* Override spacing to force less margin and padding globally */
+  --spacing-6: 1rem;     /* originally 1.5rem */
+  --spacing-8: 1.25rem;  /* originally 2rem */
+  --spacing-12: 2rem;    /* originally 3rem */
+  --spacing-16: 2.5rem;  /* originally 4rem */
+  --spacing-20: 3rem;    /* originally 5rem */
+  --spacing-24: 3.5rem;  /* originally 6rem */
 }
 
 /* Base resets & styles */
@@ -69,53 +84,45 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom Premium Utilities */
+/* Custom Premium Utilities - Adjusted for cleaner look */
 .glass-nav {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid var(--border);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
 }
 
 .glass-card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-hover:hover {
-  transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 40px rgba(2, 132, 199, 0.06);
-  border-color: rgba(2, 132, 199, 0.3);
+  box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #38bdf8 0%, #4f46e5 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #38bdf8 0%, #4f46e5 100%);
+  background: var(--primary);
 }
 
 .gradient-bg-soft {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(79, 70, 229, 0.08) 100%);
+  background: var(--secondary);
 }
 
 .glow-btn {
-  position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .glow-btn:hover {
-  box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
 }
 
 /* Custom Scrollbar */
@@ -124,34 +131,23 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f1f3f4;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #dadce0;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #bdc1c6;
 }
 
-/* Custom Animations */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
+/* Custom Animations - Removed float/pulse for cleaner corporate look */
 .animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  /* Disabled float for cleaner look */
 }
 
 .animate-pulse-slow {
-  animation: pulse-slow 3s ease-in-out infinite;
+  /* Disabled pulse for cleaner look */
 }

@@ -10,20 +10,16 @@ export default function Disclaimer() {
   return (
     <>
       <Navbar />
-      <main className="flex-grow pt-24">
-        <section className="bg-slate-50 border-b border-slate-200/50 py-16">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Disclaimer
-            </h1>
-            <p className="text-slate-500 text-sm max-w-2xl mx-auto leading-relaxed">
-              Last updated: June 2026. We believe in being upfront — here are some important things you should know.
-            </p>
-          </div>
-        </section>
+      <main className="flex-grow flex flex-col min-w-0 overflow-x-hidden pt-32 md:pt-36 pb-12">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8 animate-fade-in">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Disclaimer</h1>
+              <p className="text-slate-500 text-sm">Last updated: June 2026. We believe in being upfront — here are some important things you should know.</p>
+            </div>
 
-        <section className="py-16 bg-white">
-          <div className="max-w-3xl mx-auto px-4 prose prose-slate text-slate-600 space-y-8 leading-relaxed">
+            <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="prose prose-slate text-slate-600 max-w-none space-y-8 leading-relaxed text-sm">
             <div className="space-y-3">
               <h2 className="text-xl font-bold text-slate-900">1. This is not financial advice</h2>
               <p>
@@ -64,8 +60,10 @@ export default function Disclaimer() {
                 We encourage you to read everything on this website carefully, ask questions before you start, and only participate with amounts you&apos;re comfortable with. The best decisions come from understanding, not pressure.
               </p>
             </div>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       </main>
       <Footer />
     </>

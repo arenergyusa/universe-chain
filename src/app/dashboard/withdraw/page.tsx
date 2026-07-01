@@ -34,7 +34,7 @@ export default async function WithdrawPage() {
   const recentWithdrawals = user.transactions;
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Withdraw Funds
@@ -44,14 +44,14 @@ export default async function WithdrawPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form panel */}
-        <div className="lg:col-span-7">
+        <div>
           <WithdrawForm balance={balance} feePercentage={withdrawalFee} />
         </div>
 
         {/* Recent History Panel */}
-        <div className="lg:col-span-5">
+        <div>
           <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-slate-900 text-sm">Recent Withdrawals</h3>

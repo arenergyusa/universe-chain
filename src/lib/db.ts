@@ -7,31 +7,33 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
+// Optimal configuration for Serverless PostgreSQL (like Neon)
+const poolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  max: 20, // Limit max connections per instance
+  idleTimeoutMillis: 10000, // Close idle connections after 10s to prevent silent drops
+  connectionTimeoutMillis: 10000, // Give more time to establish connections
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  keepAlive: true, // Enable TCP Keep-Alives to prevent NAT timeouts
+};
+
 let prisma: PrismaClient;
 let pool: Pool;
 
 if (process.env.NODE_ENV === 'production') {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 20, // Limit max connections per instance
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-    ssl: {
-      rejectUnauthorized: false,
-    },
+  pool = new Pool(poolConfig);
+  pool.on('error', (err) => {
+    console.error('Prisma Pool: Unexpected error on idle client', err);
   });
   const adapter = new PrismaPg(pool);
   prisma = new PrismaClient({ adapter });
 } else {
   if (!globalForPrisma.pool) {
-    globalForPrisma.pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+    globalForPrisma.pool = new Pool(poolConfig);
+    globalForPrisma.pool.on('error', (err) => {
+      console.error('Prisma Pool: Unexpected error on idle client', err);
     });
   }
   pool = globalForPrisma.pool;

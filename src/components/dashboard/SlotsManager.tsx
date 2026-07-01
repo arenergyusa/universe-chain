@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Layers, ShieldCheck, HelpCircle, Loader2, Award, User } from 'lucide-react';
+import { Layers, ShieldCheck, HelpCircle, Loader2, Award, User, MoveHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface SlotMemberData {
   id: string;
@@ -31,8 +32,6 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
   const router = useRouter();
   const [selectedSlotNum, setSelectedSlotNum] = useState<number>(1);
   const [loading, setLoading] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   // activeSlotMap only holds currently 'active' slots that can be viewed/filled
   const activeSlotMap = new Map(activeSlots.filter(s => s.status === 'active').map(s => [s.slotNumber, s]));
@@ -48,13 +47,11 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
 
   const handleActivate = async (slotNum: number, cost: number) => {
     if (userBalance < cost) {
-      setError(`Insufficient balance. Activation requires ${cost} USDT.`);
+      toast.error(`Insufficient balance. Activation requires ${cost} USDT.`);
       return;
     }
 
     try {
-      setError(null);
-      setSuccess(null);
       setLoading(slotNum);
 
       const res = await fetch('/api/slots/activate', {
@@ -68,10 +65,10 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
         throw new Error(data.error || 'Failed to activate slot.');
       }
 
-      setSuccess(`Vault Slot ${slotNum} activated successfully! Your position has been placed in the matrix.`);
+      toast.success(`Vault Slot ${slotNum} activated successfully! Your position has been placed in the matrix.`);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+      toast.error(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {
       setLoading(null);
     }
@@ -121,8 +118,12 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
     const rightRightL2 = rightL1 ? level2.find(m => m.parentMemberId === rightL1.id && m.position === 'right') : null;
 
     return (
-      <div className="w-full overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="space-y-8 py-4 min-w-[750px] flex flex-col items-center mx-auto">
+      <div className="w-full relative">
+        <div className="sm:hidden absolute top-0 right-0 flex items-center gap-1 text-[10px] text-slate-400 font-bold bg-white/80 px-2 py-1 rounded-full z-10 animate-pulse">
+          Swipe <MoveHorizontal className="w-3 h-3" />
+        </div>
+        <div className="w-full overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="space-y-8 py-4 min-w-[750px] flex flex-col items-center mx-auto">
           {/* Root Level (You) */}
           <div className="flex flex-col items-center">
             <div className="flex flex-col items-center p-3 bg-slate-900 border border-slate-800 text-white rounded-2xl w-28 shadow-md">
@@ -287,24 +288,12 @@ export default function SlotsManager({ userBalance, activeSlots, slotDetails }: 
           </div>
         </div>
       </div>
+      </div>
     );
   };
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Messages */}
-      {error && (
-        <div className="p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-xs font-semibold">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl text-xs font-semibold">
-          {success}
-        </div>
-      )}
-
       {/* Slots List */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {slotDetails.map((slot) => {

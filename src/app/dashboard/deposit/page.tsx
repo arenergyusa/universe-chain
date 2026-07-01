@@ -28,24 +28,24 @@ export default async function DepositPage() {
   const recentDeposits = user.transactions;
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto animate-fade-in">
-      <div className="text-center space-y-2">
+    <div className="space-y-8 animate-fade-in">
+      <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Deposit
         </h1>
-        <p className="text-slate-500 text-sm">
+        <p className="text-slate-500 text-sm mt-1">
           Seamlessly fund your account by signing a transaction directly from your connected wallet.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Web3 Deposit Interactive Component */}
-        <div className="md:col-span-7 space-y-6">
+        <div className="space-y-6">
           <DepositSync adminAddress={adminDepositAddress} />
         </div>
 
         {/* Info & History */}
-        <div className="md:col-span-5 space-y-6">
+        <div className="space-y-6">
           <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-slate-900 text-sm">Recent Deposits</h3>

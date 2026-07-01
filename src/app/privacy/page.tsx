@@ -10,20 +10,16 @@ export default function Privacy() {
   return (
     <>
       <Navbar />
-      <main className="flex-grow pt-24">
-        <section className="bg-slate-50 border-b border-slate-200/50 py-16">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Privacy Policy
-            </h1>
-            <p className="text-slate-500 text-sm max-w-2xl mx-auto leading-relaxed">
-              Last updated: June 2026. Your privacy matters to us — here&apos;s a straightforward explanation of how we handle your data.
-            </p>
-          </div>
-        </section>
+      <main className="flex-grow flex flex-col min-w-0 overflow-x-hidden pt-32 md:pt-36 pb-12">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8 animate-fade-in">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Privacy Policy</h1>
+              <p className="text-slate-500 text-sm">Last updated: June 2026. Your privacy matters to us — here's a straightforward explanation of how we handle your data.</p>
+            </div>
 
-        <section className="py-16 bg-white">
-          <div className="max-w-3xl mx-auto px-4 prose prose-slate text-slate-600 space-y-8 leading-relaxed">
+            <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="prose prose-slate text-slate-600 max-w-none space-y-8 leading-relaxed text-sm">
             <div className="space-y-3">
               <h2 className="text-xl font-bold text-slate-900">1. We keep it minimal</h2>
               <p>
@@ -71,8 +67,10 @@ export default function Privacy() {
                 You can disconnect your wallet at any time, clear your browser cookies, or contact us to ask about your data. We&apos;re happy to help with any privacy concerns.
               </p>
             </div>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       </main>
       <Footer />
     </>

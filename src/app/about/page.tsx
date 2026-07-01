@@ -11,22 +11,17 @@ export default function About() {
   return (
     <>
       <Navbar />
-      <main className="flex-grow pt-24">
-        <section className="bg-slate-50 border-b border-slate-200/50 py-16">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Our Story
-            </h1>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
-              Universe Chain started with a simple question: what if there was a platform where people could grow together — transparently, fairly, and without the usual friction?
-            </p>
-          </div>
-        </section>
+      <main className="flex-grow flex flex-col min-w-0 overflow-x-hidden pt-32 md:pt-36 pb-12">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8 animate-fade-in">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">About Us</h1>
+              <p className="text-slate-500 text-sm">Universe Chain started with a simple question: what if there was a platform where people could grow together — transparently, fairly, and without the usual friction?</p>
+            </div>
 
-        <section className="py-16 bg-white">
-          <div className="max-w-4xl mx-auto px-4 space-y-12">
-            <div className="space-y-4 leading-relaxed">
-              <h2 className="text-2xl font-bold text-slate-900">Why We Built This</h2>
+            <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm space-y-12">
+              <div className="space-y-4 leading-relaxed text-sm">
+              <h2 className="text-xl font-bold text-slate-900">Why We Built This</h2>
               <p className="text-slate-600">
                 We&apos;ve seen too many platforms that promise the world and deliver confusion. Complicated dashboards. Hidden fees. Vague terms. People deserve better than that.
               </p>
@@ -38,8 +33,8 @@ export default function About() {
               </p>
             </div>
 
-            <div className="space-y-4 leading-relaxed">
-              <h2 className="text-2xl font-bold text-slate-900">What We Believe In</h2>
+            <div className="space-y-4 leading-relaxed text-sm">
+              <h2 className="text-xl font-bold text-slate-900">What We Believe In</h2>
               <p className="text-slate-600">
                 A great platform isn&apos;t about flashy features — it&apos;s about making people feel confident. That means clear language on every page, a support team that actually responds, and a dashboard that shows you the truth, not just what looks impressive.
               </p>
@@ -70,8 +65,9 @@ export default function About() {
                 <p className="text-xs text-slate-500 leading-relaxed">We don&apos;t use complicated jargon or bury important info in long documents. If it&apos;s important, you&apos;ll see it front and center.</p>
               </div>
             </div>
+            </div>
           </div>
-        </section>
+        </div>
       </main>
       <Footer />
     </>

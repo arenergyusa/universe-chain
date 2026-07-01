@@ -11,22 +11,18 @@ export default function Contact() {
   return (
     <>
       <Navbar />
-      <main className="flex-grow pt-24">
-        <section className="bg-slate-50 border-b border-slate-200/50 py-16">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Talk to Us
-            </h1>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
-              Whether you have a question, feedback, or just want to say hello — we&apos;d love to hear from you. Our team typically responds within a few hours.
-            </p>
-          </div>
-        </section>
+      <main className="flex-grow flex flex-col min-w-0 overflow-x-hidden pt-32 md:pt-36 pb-12">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8 animate-fade-in">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Talk to Us</h1>
+              <p className="text-slate-500 text-sm">Whether you have a question, feedback, or just want to say hello — we'd love to hear from you. Our team typically responds within a few hours.</p>
+            </div>
 
-        <section className="py-16 bg-white">
-          <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+            <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
             <div className="md:col-span-5 space-y-6">
-              <h2 className="text-2xl font-bold text-slate-900">How to reach us</h2>
+              <h2 className="text-xl font-bold text-slate-900">How to reach us</h2>
               <p className="text-slate-500 text-sm leading-relaxed">
                 Pick whatever feels most comfortable. Email us for detailed questions, join our community chat for quick answers, or just fill out the form — we read every single message.
               </p>
@@ -114,8 +110,10 @@ export default function Contact() {
                 </form>
               </div>
             </div>
+            </div>
           </div>
-        </section>
+          </div>
+        </div>
       </main>
       <Footer />
     </>

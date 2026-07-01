@@ -73,7 +73,7 @@ export default function RewardsPage() {
   const eligibleSlotClaims = stats.completedSlots - stats.slotRewardsClaimed;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
@@ -159,7 +159,7 @@ export default function RewardsPage() {
             </div>
           </div>
 
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Slots Bonus</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-2">Slot Bonus</h3>
           <p className="text-sm text-slate-500 mb-6 flex-grow">
             When your 14-member working slot is completely filled, you earn an extra bonus of {configs.slotReward} USDT as a reward for your leadership!
           </p>

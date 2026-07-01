@@ -29,22 +29,17 @@ export default function HelpSupport() {
   return (
     <>
       <Navbar />
-      <main className="flex-grow pt-24">
-        <section className="bg-slate-50 border-b border-slate-200/50 py-16">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              How Can We Help?
-            </h1>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
-              We&apos;ve put together guides and answers for the most common questions. If you can&apos;t find what you need, just reach out — we&apos;re always happy to help.
-            </p>
-          </div>
-        </section>
+      <main className="flex-grow flex flex-col min-w-0 overflow-x-hidden pt-32 md:pt-36 pb-12">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8 animate-fade-in">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Help & Support</h1>
+              <p className="text-slate-500 text-sm">We've put together guides and answers for the most common questions. If you can't find what you need, just reach out.</p>
+            </div>
 
-        <section className="py-16 bg-white">
-          <div className="max-w-4xl mx-auto px-4 space-y-12">
+            <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm space-y-12">
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-slate-900">Popular Topics</h2>
+              <h2 className="text-xl font-bold text-slate-900">Popular Topics</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {articles.map((article, i) => (
                   <div key={i} className="glass-card p-6 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all space-y-4">
@@ -85,7 +80,7 @@ export default function HelpSupport() {
             </div>
 
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-slate-900">Still Need Help?</h2>
+              <h2 className="text-xl font-bold text-slate-900">Still Need Help?</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="glass-card p-6 rounded-2xl border border-slate-100 space-y-3">
                   <div className="flex items-center space-x-2">
@@ -107,8 +102,9 @@ export default function HelpSupport() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
-        </section>
+        </div>
       </main>
       <Footer />
     </>

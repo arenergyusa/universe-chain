@@ -21,9 +21,6 @@ import {
 import DepositSync from '@/components/dashboard/DepositSync';
 import CopyButton from '@/components/dashboard/CopyButton';
 import { Share2, Link as LinkIcon, Gift } from 'lucide-react';
-export const metadata = {
-  title: 'Dashboard Overview - Universe Chain',
-};
 
 export default async function DashboardOverview() {
   const session = await getSession();
@@ -41,6 +38,7 @@ export default async function DashboardOverview() {
       },
       referrals: {
         orderBy: { createdAt: 'desc' },
+        take: 50,
       },
       transactions: {
         orderBy: { createdAt: 'desc' },
@@ -62,7 +60,7 @@ export default async function DashboardOverview() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       {/* Welcome & Account Summary */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -75,7 +73,7 @@ export default async function DashboardOverview() {
         </div>
 
         {/* Status Indicator */}
-        <div className="flex items-center space-x-3 bg-white border border-slate-200/80 rounded-2xl p-3 shadow-sm w-fit">
+        <div className="hidden md:flex items-center space-x-3 bg-white border border-slate-200/80 rounded-2xl p-3 shadow-sm w-fit">
           <div className={`w-3 h-3 rounded-full ${user.status === 'active' ? 'bg-emerald-500 animate-pulse-slow' : 'bg-amber-500'}`} />
           <div>
             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Account Status</div>
@@ -169,7 +167,7 @@ export default async function DashboardOverview() {
           </div>
         </div>
 
-        {/* Community Members Card */}
+        {/* Community Members / Capacity Card */}
         <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Invites</span>
@@ -181,8 +179,30 @@ export default async function DashboardOverview() {
             <div className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
               {user.directReferralCount}
             </div>
-            <div className="text-[10px] font-bold text-slate-400 mt-1">Directly connected users</div>
+            <div className="text-[10px] font-bold text-slate-400 mt-1">Direct Connections</div>
           </div>
+          {/* Capacity Progress Bar */}
+          {activeSlotsCount > 0 && (() => {
+            const maxDirects = activeSlotsCount * 2;
+            const pct = Math.min(100, Math.round((user.directReferralCount / maxDirects) * 100));
+            return (
+              <div className="space-y-1.5 pt-1 border-t border-slate-100">
+                <div className="flex justify-between text-[10px] font-bold">
+                  <span className="text-slate-400">Capacity</span>
+                  <span className={pct >= 100 ? 'text-rose-500' : 'text-slate-600'}>{user.directReferralCount} / {maxDirects}</span>
+                </div>
+                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${pct >= 100 ? 'bg-rose-400' : pct >= 70 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                {pct >= 100 && (
+                  <p className="text-[10px] text-rose-500 font-bold">Open a new slot to invite more</p>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 

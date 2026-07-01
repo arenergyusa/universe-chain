@@ -63,6 +63,7 @@ export default function SignIn() {
         version: '1',
         chainId: chainId,
         nonce: nonce,
+        expirationTime: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // Expires in 5 minutes
       });
 
       const preparedMessage = message.prepareMessage();
@@ -112,14 +113,11 @@ export default function SignIn() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="relative w-full max-w-md">
-        {/* Decorative background glow */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-sky-400/20 to-emerald-400/10 rounded-3xl opacity-30 blur-2xl"></div>
-
-        <div className="glass-card relative border border-slate-200/80 rounded-3xl p-8 shadow-xl space-y-8 text-center">
+        <div className="glass-card relative border border-slate-200 rounded-lg p-6 sm:p-8 shadow-sm space-y-8 text-center bg-white">
           {/* Brand/Header */}
           <div className="space-y-3">
-            <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center text-white font-bold shadow-lg shadow-sky-500/20 mx-auto animate-float">
-              <KeyRound className="w-8 h-8" />
+            <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mx-auto">
+              <KeyRound className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               Access Universe Chain

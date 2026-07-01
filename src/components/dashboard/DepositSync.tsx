@@ -53,6 +53,13 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
     }
   }, [isConfirmed]);
 
+  // Auto-refresh balance every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [router]);
 
 
   const handleCopy = () => {

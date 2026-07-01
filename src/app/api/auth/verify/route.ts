@@ -3,6 +3,7 @@ import { SiweMessage } from 'siwe';
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { setSession } from '@/lib/jwt';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 
 // Helper to generate a unique referral code
@@ -31,10 +32,19 @@ async function generateUniqueReferralCode(): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, signature, referrerCode } = await req.json();
+    // Rate limit: max 5 verification attempts per minute per IP
+    const rateLimitResponse = checkRateLimit(req, 5, 60000);
+    if (rateLimitResponse) return rateLimitResponse;
 
-    if (!message || !signature) {
-      return NextResponse.json({ error: 'Message and signature are required.' }, { status: 400 });
+    const body = await req.json();
+    const { message, signature, referrerCode } = body;
+
+    if (!message || typeof message !== 'string') {
+      return NextResponse.json({ error: 'Invalid message format.' }, { status: 400 });
+    }
+
+    if (!signature || typeof signature !== 'string' || !/^0x[0-9a-fA-F]{130}$/.test(signature)) {
+      return NextResponse.json({ error: 'Invalid signature format.' }, { status: 400 });
     }
 
     // Parse SIWE message
