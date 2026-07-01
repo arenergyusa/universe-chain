@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
 
     const user = await db.user.findUnique({
       where: { id: session.userId },
-      include: { slots: { orderBy: { createdAt: 'asc' } } },
     });
 
     if (!user) {
@@ -41,19 +40,23 @@ export async function POST(req: NextRequest) {
 
     // ─── ID ACTIVATION (one-time) ───
     if (type === 'activate') {
-      const hasAnySlot = user.slots.length > 0;
-      if (hasAnySlot) {
-        return NextResponse.json({ error: 'Your ID is already activated.' }, { status: 400 });
-      }
-
-      if (user.internalBalance.toNumber() < slotOpenAmount) {
-        return NextResponse.json({ error: `Insufficient balance. ID activation requires ${slotOpenAmount} USDT.` }, { status: 400 });
-      }
-
       const result = await db.$transaction(async (tx) => {
+        const txUser = await tx.user.findUnique({
+          where: { id: user.id },
+          include: { slots: { orderBy: { createdAt: 'asc' } } },
+        });
+
+        if (!txUser) throw new Error('VALIDATION:User not found.');
+        if (txUser.slots.length > 0) {
+          throw new Error('VALIDATION:Your ID is already activated.');
+        }
+        if (txUser.internalBalance.toNumber() < slotOpenAmount) {
+          throw new Error(`VALIDATION:Insufficient balance. ID activation requires ${slotOpenAmount} USDT.`);
+        }
+
         // Deduct balance & activate user status
         await tx.user.update({
-          where: { id: user.id },
+          where: { id: txUser.id },
           data: {
             internalBalance: { decrement: slotOpenAmount },
             status: 'active',
@@ -63,21 +66,21 @@ export async function POST(req: NextRequest) {
         // Log activation transaction
         await tx.transaction.create({
           data: {
-            userId: user.id,
+            userId: txUser.id,
             amount: slotOpenAmount,
             type: 'activation',
             status: 'completed',
-            txHash: `internal_activate_${user.id}_${Date.now()}`,
+            txHash: `internal_activate_${txUser.id}_${Date.now()}`,
           },
         });
 
         // Create Slot 1 for the user (their own board)
         const newSlot = await tx.slot.create({
-          data: { userId: user.id, slotNumber: 1, status: 'active' },
+          data: { userId: txUser.id, slotNumber: 1, status: 'active' },
         });
 
         // Place user in sponsor's board (auto-creates sponsor slot if needed)
-        await placeInSponsorBoard(tx, user.id, user.referredById, slotOpenAmount, levelPercentages);
+        await placeInSponsorBoard(tx, txUser.id, txUser.referredById, slotOpenAmount, levelPercentages);
 
         return { success: true, slotId: newSlot.id };
       }, {
@@ -91,20 +94,26 @@ export async function POST(req: NextRequest) {
 
     // ─── ID RETOP (per slot completion) ───
     if (type === 'retop') {
-      // Find oldest completed slot
-      const completedSlot = user.slots.find(s => s.status === 'completed');
-      if (!completedSlot) {
-        return NextResponse.json({ error: 'No completed slot available for retop.' }, { status: 400 });
-      }
-
-      if (user.internalBalance.toNumber() < retopAmount) {
-        return NextResponse.json({ error: `Insufficient balance. ID retop requires ${retopAmount} USDT.` }, { status: 400 });
-      }
-
       const result = await db.$transaction(async (tx) => {
+        const txUser = await tx.user.findUnique({
+          where: { id: user.id },
+          include: { slots: { orderBy: { createdAt: 'asc' } } },
+        });
+
+        if (!txUser) throw new Error('VALIDATION:User not found.');
+
+        const completedSlot = txUser.slots.find(s => s.status === 'completed');
+        if (!completedSlot) {
+          throw new Error('VALIDATION:No completed slot available for retop.');
+        }
+
+        if (txUser.internalBalance.toNumber() < retopAmount) {
+          throw new Error(`VALIDATION:Insufficient balance. ID retop requires ${retopAmount} USDT.`);
+        }
+
         // Deduct balance
         await tx.user.update({
-          where: { id: user.id },
+          where: { id: txUser.id },
           data: { internalBalance: { decrement: retopAmount } },
         });
 
@@ -116,28 +125,28 @@ export async function POST(req: NextRequest) {
 
         // Create new active slot with the same slotNumber (new cycle)
         const newSlot = await tx.slot.create({
-          data: { userId: user.id, slotNumber: completedSlot.slotNumber, status: 'active' },
+          data: { userId: txUser.id, slotNumber: completedSlot.slotNumber, status: 'active' },
         });
 
         // Log retop transaction
         await tx.transaction.create({
           data: {
-            userId: user.id,
+            userId: txUser.id,
             amount: retopAmount,
             type: 'retop',
             status: 'completed',
-            txHash: `internal_retop_${user.id}_slot_${completedSlot.slotNumber}_${Date.now()}`,
+            txHash: `internal_retop_${txUser.id}_slot_${completedSlot.slotNumber}_${Date.now()}`,
           },
         });
 
         // Distribute retop commissions (trace from where this user is placed)
         const userPlacement = await tx.slotMember.findFirst({
-          where: { userId: user.id, level: 1 },
+          where: { userId: txUser.id, level: 1 },
           orderBy: { createdAt: 'asc' },
         });
 
         if (userPlacement) {
-          await distributeCommissions(tx, userPlacement.slotId, user.id, retopAmount, levelPercentages);
+          await distributeCommissions(tx, userPlacement.slotId, txUser.id, retopAmount, levelPercentages);
         }
 
         return { success: true, slotId: newSlot.id, retopedSlotNumber: completedSlot.slotNumber };
@@ -153,7 +162,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
   } catch (error: any) {
     console.error('Slot activation error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error.' }, { status: 500 });
+    if (error.message?.startsWith('VALIDATION:')) {
+      return NextResponse.json({ error: error.message.replace('VALIDATION:', '') }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred processing your request.' }, { status: 500 });
   }
 }
 
@@ -168,44 +180,32 @@ async function placeInSponsorBoard(
   let placementSlot: any = null;
 
   if (sponsorId) {
-    // Find sponsor's active slots with L1 member counts
+    // Find sponsor's active slots with members
     const sponsorSlots = await tx.slot.findMany({
       where: { userId: sponsorId, status: 'active' },
       orderBy: { slotNumber: 'asc' },
-      include: { members: { where: { level: 1 } } },
+      include: { members: true },
     });
 
-    // Find first slot with < 2 L1 members
+    // Find first slot with < 14 members
     for (const slot of sponsorSlots) {
-      if (slot.members.length < 2) {
+      if (slot.members.length < 14) {
         placementSlot = slot;
         break;
       }
     }
-
-    // All L1 positions full → auto-create next slot for sponsor (FREE)
-    if (!placementSlot) {
-      const maxSlotNum = sponsorSlots.length > 0
-        ? Math.max(...sponsorSlots.map((s: any) => s.slotNumber))
-        : 0;
-
-      placementSlot = await tx.slot.create({
-        data: { userId: sponsorId, slotNumber: maxSlotNum + 1, status: 'active' },
-      });
-      placementSlot.members = []; // Fresh slot has no members
-    }
   }
 
-  // Fallback: if no sponsor, find any available slot globally
+  // Fallback: if no sponsor or sponsor slot is full, find any available slot globally
   if (!placementSlot) {
     const allActiveSlots = await tx.slot.findMany({
       where: { status: 'active' },
       orderBy: { createdAt: 'asc' },
-      include: { members: { where: { level: 1 } } },
+      include: { members: true },
     });
 
     for (const slot of allActiveSlots) {
-      if (slot.members.length < 2 && slot.userId !== userId) {
+      if (slot.members.length < 14 && slot.userId !== userId) {
         placementSlot = slot;
         break;
       }
@@ -214,31 +214,139 @@ async function placeInSponsorBoard(
 
   // Place in the board if a slot was found
   if (placementSlot && placementSlot.userId !== userId) {
-    const existingMembers = await tx.slotMember.findMany({
-      where: { slotId: placementSlot.id, level: 1 },
-    });
+    const members = placementSlot.members;
+    let targetParentMemberId: string | null = null;
+    let targetLevel = 1;
+    let targetPosition = 'left';
 
-    const hasLeft = existingMembers.some((m: any) => m.position === 'left');
-    const position = hasLeft ? 'right' : 'left';
+    const l1 = members.filter((m: any) => m.level === 1);
+    const l2 = members.filter((m: any) => m.level === 2);
+    const l3 = members.filter((m: any) => m.level === 3);
 
-    const newMember = await tx.slotMember.create({
-      data: {
-        slotId: placementSlot.id,
-        userId: userId,
-        parentMemberId: null,
-        position: position,
-        level: 1,
-      },
-    });
+    const getChildren = (level: number, parentId: string | null) => {
+      if (level === 1) return l1;
+      if (level === 2) return l2.filter((m: any) => m.parentMemberId === parentId);
+      if (level === 3) return l3.filter((m: any) => m.parentMemberId === parentId);
+      return [];
+    };
 
-    // Update slot's left/right child pointer
-    await tx.slot.update({
-      where: { id: placementSlot.id },
-      data: position === 'left' ? { leftChildId: newMember.id } : { rightChildId: newMember.id },
-    });
+    if (l1.length < 2) {
+      targetParentMemberId = null;
+      targetLevel = 1;
+      targetPosition = l1.some((m: any) => m.position === 'left') ? 'right' : 'left';
+    } else {
+      const l1Left = l1.find((m: any) => m.position === 'left');
+      const l1Right = l1.find((m: any) => m.position === 'right');
+      
+      const parentsToCheck = [];
+      if (l1Left) parentsToCheck.push({ member: l1Left, nextLevel: 2 });
+      if (l1Right) parentsToCheck.push({ member: l1Right, nextLevel: 2 });
+      if (l1Left) {
+         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Left.id && m.position === 'left'), nextLevel: 3 });
+         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Left.id && m.position === 'right'), nextLevel: 3 });
+      }
+      if (l1Right) {
+         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Right.id && m.position === 'left'), nextLevel: 3 });
+         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Right.id && m.position === 'right'), nextLevel: 3 });
+      }
 
-    // Distribute 3-level commissions up the board hierarchy
-    await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages);
+      for (const p of parentsToCheck) {
+        if (!p.member) continue;
+        const children = getChildren(p.nextLevel, p.member.id);
+        if (children.length < 2) {
+          targetParentMemberId = p.member.id;
+          targetLevel = p.nextLevel;
+          targetPosition = children.some((m: any) => m.position === 'left') ? 'right' : 'left';
+          break;
+        }
+      }
+    }
+
+    let uplineIds: string[] = [];
+    let currParentId = targetParentMemberId;
+    while (currParentId) {
+       const m = members.find((x: any) => x.id === currParentId);
+       if (m) {
+         uplineIds.push(m.userId);
+         currParentId = m.parentMemberId;
+       } else {
+         break;
+       }
+    }
+    uplineIds.push(placementSlot.userId);
+
+    let currentOwnerId = placementSlot.userId;
+    while (uplineIds.length < 3) {
+       const ownerL1 = await tx.slotMember.findFirst({
+         where: { userId: currentOwnerId, level: 1 },
+         orderBy: { createdAt: 'desc' },
+       });
+       if (ownerL1) {
+         const parentSlot = await tx.slot.findUnique({ where: { id: ownerL1.slotId } });
+         if (parentSlot) {
+            uplineIds.push(parentSlot.userId);
+            currentOwnerId = parentSlot.userId;
+         } else break;
+       } else break;
+    }
+
+    uplineIds = uplineIds.slice(0, 3);
+    
+    let p1SlotId = null;
+
+    for (let i = 0; i < uplineIds.length; i++) {
+      const u_owner = uplineIds[i];
+      const level = i + 1;
+      const parent_user_id = i > 0 ? uplineIds[i-1] : null;
+
+      const slot = await tx.slot.findFirst({
+        where: { userId: u_owner, status: 'active' },
+        orderBy: { createdAt: 'asc' },
+      });
+      
+      if (!slot) continue;
+      
+      if (level === 1) p1SlotId = slot.id;
+
+      let pMemberId = null;
+      if (parent_user_id) {
+         const pMember = await tx.slotMember.findFirst({
+           where: { slotId: slot.id, userId: parent_user_id }
+         });
+         if (pMember) pMemberId = pMember.id;
+      }
+
+      const newMember = await tx.slotMember.create({
+        data: {
+          slotId: slot.id,
+          userId: userId,
+          parentMemberId: pMemberId,
+          position: targetPosition,
+          level: level,
+        }
+      });
+
+      if (level === 1) {
+        await tx.slot.update({
+          where: { id: slot.id },
+          data: targetPosition === 'left' ? { leftChildId: newMember.id } : { rightChildId: newMember.id }
+        });
+      }
+
+      const memberCount = await tx.slotMember.count({ where: { slotId: slot.id } });
+      if (memberCount >= 14) {
+        await tx.slot.update({
+          where: { id: slot.id },
+          data: { status: 'completed', completedAt: new Date() }
+        });
+      }
+    }
+
+    if (p1SlotId) {
+      await distributeCommissions(tx, p1SlotId, userId, cost, levelPercentages);
+    } else {
+      await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages);
+    }
   }
 }
 

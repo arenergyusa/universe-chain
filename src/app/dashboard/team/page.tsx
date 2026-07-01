@@ -73,9 +73,10 @@ export default async function TeamPage() {
 
   // Calculate summary stats
   const totalEarned = parseFloat(user.totalEarned.toString());
-  const activationTx = txData.find(t => t.type === 'activation');
-  const retopTxs = txData.filter(t => t.type === 'retop');
-  const commissionTxs = txData.filter(t => t.type === 'commission');
+  const finalizedTxData = txData.filter(t => t.status === 'completed');
+  const activationTx = finalizedTxData.find(t => t.type === 'activation');
+  const retopTxs = finalizedTxData.filter(t => t.type === 'retop');
+  const commissionTxs = finalizedTxData.filter(t => t.type === 'commission');
   const totalInvested = (activationTx?.amount || 0) + retopTxs.reduce((s, t) => s + t.amount, 0);
 
   const summary = {

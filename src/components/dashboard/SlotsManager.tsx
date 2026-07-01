@@ -330,6 +330,14 @@ export default function SlotsManager({
               <div
                 key={num}
                 onClick={() => setSelectedSlotNum(num)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedSlotNum(num);
+                  }
+                }}
                 className={`glass-card bg-white border rounded-3xl p-6 shadow-sm space-y-4 cursor-pointer transition-all duration-200 relative overflow-hidden ${
                   isSelected
                     ? 'border-sky-500 ring-2 ring-sky-500/15'

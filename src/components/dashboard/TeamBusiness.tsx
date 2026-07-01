@@ -56,13 +56,6 @@ interface Props {
 }
 
 export default function TeamBusiness({ slots, transactions, summary }: Props) {
-  const [expandedSlot, setExpandedSlot] = useState<string | null>(
-    slots.find(s => s.status === 'active')?.id || slots[0]?.id || null
-  );
-
-  const formatAddress = (addr: string) => `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  const formatDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-
   // Group slots by slotNumber (latest active first, then completed, then retoped)
   const slotGroups = new Map<number, SlotData[]>();
   slots.forEach(s => {
@@ -74,13 +67,20 @@ export default function TeamBusiness({ slots, transactions, summary }: Props) {
   // For each slotNumber, show the most relevant (active > completed > retoped)
   const displaySlots: SlotData[] = [];
   slotGroups.forEach((group, num) => {
-    const active = group.find(s => s.status === 'active');
-    const completed = group.find(s => s.status === 'completed');
+    const active = [...group].reverse().find(s => s.status === 'active');
+    const completed = [...group].reverse().find(s => s.status === 'completed');
     if (active) displaySlots.push(active);
     else if (completed) displaySlots.push(completed);
     else displaySlots.push(group[group.length - 1]); // latest retoped
   });
   displaySlots.sort((a, b) => a.slotNumber - b.slotNumber);
+
+  const [expandedSlot, setExpandedSlot] = useState<string | null>(
+    displaySlots.find(s => s.status === 'active')?.id || displaySlots[0]?.id || null
+  );
+
+  const formatAddress = (addr: string) => `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+  const formatDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
   // Build level-wise member tables for a slot
   const getLevelMembers = (slot: SlotData, level: number): { position: string; label: string; member: MemberData | null }[] => {
@@ -205,17 +205,17 @@ export default function TeamBusiness({ slots, transactions, summary }: Props) {
       {/* ── Section 1: Summary Stats ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
-          { label: 'Total Slots', value: summary.totalSlots, icon: <Layers className="w-4 h-4" />, color: 'sky' },
-          { label: 'Active Slots', value: summary.activeSlots, icon: <ShieldCheck className="w-4 h-4" />, color: 'emerald' },
-          { label: 'Team Members', value: summary.totalTeamMembers, icon: <Users className="w-4 h-4" />, color: 'indigo' },
-          { label: 'Total Earned', value: `${summary.totalEarned.toFixed(2)}`, icon: <TrendingUp className="w-4 h-4" />, color: 'emerald' },
-          { label: 'Total Invested', value: `${summary.totalInvested.toFixed(2)}`, icon: <DollarSign className="w-4 h-4" />, color: 'amber' },
-          { label: 'Net P&L', value: `${summary.netPnL >= 0 ? '+' : ''}${summary.netPnL.toFixed(2)}`, icon: <BarChart3 className="w-4 h-4" />, color: summary.netPnL >= 0 ? 'emerald' : 'rose' },
+          { label: 'Total Slots', value: summary.totalSlots, icon: <Layers className="w-4 h-4" />, wrapperClass: 'bg-sky-50 border-sky-100 text-sky-600' },
+          { label: 'Active Slots', value: summary.activeSlots, icon: <ShieldCheck className="w-4 h-4" />, wrapperClass: 'bg-emerald-50 border-emerald-100 text-emerald-600' },
+          { label: 'Team Members', value: summary.totalTeamMembers, icon: <Users className="w-4 h-4" />, wrapperClass: 'bg-indigo-50 border-indigo-100 text-indigo-600' },
+          { label: 'Total Earned', value: `${summary.totalEarned.toFixed(2)}`, icon: <TrendingUp className="w-4 h-4" />, wrapperClass: 'bg-emerald-50 border-emerald-100 text-emerald-600' },
+          { label: 'Total Invested', value: `${summary.totalInvested.toFixed(2)}`, icon: <DollarSign className="w-4 h-4" />, wrapperClass: 'bg-amber-50 border-amber-100 text-amber-600' },
+          { label: 'Net P&L', value: `${summary.netPnL >= 0 ? '+' : ''}${summary.netPnL.toFixed(2)}`, icon: <BarChart3 className="w-4 h-4" />, wrapperClass: summary.netPnL >= 0 ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600' },
         ].map((stat, i) => (
           <div key={i} className="glass-card bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</span>
-              <div className={`w-7 h-7 rounded-lg bg-${stat.color}-50 flex items-center justify-center border border-${stat.color}-100 text-${stat.color}-600`}>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center border ${stat.wrapperClass}`}>
                 {stat.icon}
               </div>
             </div>
