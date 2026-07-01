@@ -270,8 +270,13 @@ async function placeInSponsorBoard(
          const mSlot = await tx.slot.findFirst({
            where: { userId: m.userId, status: 'active' },
            orderBy: { createdAt: 'asc' },
+           include: { members: true },
          });
-         if (mSlot) uplineSlots.push(mSlot);
+         if (mSlot && mSlot.status === 'active' && mSlot.members.length < 14) {
+           uplineSlots.push(mSlot);
+         } else {
+           uplineSlots.push(null);
+         }
          currParentId = m.parentMemberId;
        } else {
          break;
@@ -286,8 +291,11 @@ async function placeInSponsorBoard(
          orderBy: { createdAt: 'desc' },
        });
        if (ownerL1) {
-         const parentSlot = await tx.slot.findUnique({ where: { id: ownerL1.slotId } });
-         if (parentSlot) {
+         const parentSlot = await tx.slot.findUnique({ 
+           where: { id: ownerL1.slotId },
+           include: { members: true },
+         });
+         if (parentSlot && parentSlot.status === 'active' && parentSlot.members.length < 14) {
             uplineSlots.push(parentSlot);
             currentOwnerId = parentSlot.userId;
          } else break;
@@ -297,13 +305,18 @@ async function placeInSponsorBoard(
     uplineSlots = uplineSlots.slice(0, 3);
     
     let p1SlotId = null;
+    let allPlacementsSuccessful = true;
 
     for (let i = 0; i < uplineSlots.length; i++) {
       const slot = uplineSlots[i];
       const level = i + 1;
-      const parent_user_id = i > 0 ? uplineSlots[i-1].userId : null;
+      const parentSlotInfo = i > 0 ? uplineSlots[i-1] : null;
+      const parent_user_id = parentSlotInfo ? parentSlotInfo.userId : null;
 
-      if (!slot) continue;
+      if (!slot) {
+        allPlacementsSuccessful = false;
+        continue;
+      }
       
       if (level === 1) p1SlotId = slot.id;
 
@@ -316,8 +329,12 @@ async function placeInSponsorBoard(
          if (pMember) {
            pMemberId = pMember.id;
          } else if (level > 1) {
+           allPlacementsSuccessful = false;
            continue;
          }
+      } else if (level > 1) {
+         allPlacementsSuccessful = false;
+         continue;
       }
 
       const newMember = await tx.slotMember.create({
@@ -346,10 +363,12 @@ async function placeInSponsorBoard(
       }
     }
 
-    if (p1SlotId) {
-      await distributeCommissions(tx, p1SlotId, userId, cost, levelPercentages, 'slot_open');
-    } else {
-      await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages, 'slot_open');
+    if (allPlacementsSuccessful) {
+      if (p1SlotId) {
+        await distributeCommissions(tx, p1SlotId, userId, cost, levelPercentages, 'slot_open');
+      } else {
+        await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages, 'slot_open');
+      }
     }
   }
 }
