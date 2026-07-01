@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (userPlacement) {
-          await distributeCommissions(tx, userPlacement.slotId, txUser.id, retopAmount, levelPercentages);
+          await distributeCommissions(tx, userPlacement.slotId, txUser.id, retopAmount, levelPercentages, 'retop');
         }
 
         return { success: true, slotId: newSlot.id, retopedSlotNumber: completedSlot.slotNumber };
@@ -262,21 +262,25 @@ async function placeInSponsorBoard(
       }
     }
 
-    let uplineIds: string[] = [];
+    let uplineSlots: any[] = [];
     let currParentId = targetParentMemberId;
     while (currParentId) {
        const m = members.find((x: any) => x.id === currParentId);
        if (m) {
-         uplineIds.push(m.userId);
+         const mSlot = await tx.slot.findFirst({
+           where: { userId: m.userId, status: 'active' },
+           orderBy: { createdAt: 'asc' },
+         });
+         if (mSlot) uplineSlots.push(mSlot);
          currParentId = m.parentMemberId;
        } else {
          break;
        }
     }
-    uplineIds.push(placementSlot.userId);
+    uplineSlots.push(placementSlot);
 
     let currentOwnerId = placementSlot.userId;
-    while (uplineIds.length < 3) {
+    while (uplineSlots.length < 3) {
        const ownerL1 = await tx.slotMember.findFirst({
          where: { userId: currentOwnerId, level: 1 },
          orderBy: { createdAt: 'desc' },
@@ -284,26 +288,21 @@ async function placeInSponsorBoard(
        if (ownerL1) {
          const parentSlot = await tx.slot.findUnique({ where: { id: ownerL1.slotId } });
          if (parentSlot) {
-            uplineIds.push(parentSlot.userId);
+            uplineSlots.push(parentSlot);
             currentOwnerId = parentSlot.userId;
          } else break;
        } else break;
     }
 
-    uplineIds = uplineIds.slice(0, 3);
+    uplineSlots = uplineSlots.slice(0, 3);
     
     let p1SlotId = null;
 
-    for (let i = 0; i < uplineIds.length; i++) {
-      const u_owner = uplineIds[i];
+    for (let i = 0; i < uplineSlots.length; i++) {
+      const slot = uplineSlots[i];
       const level = i + 1;
-      const parent_user_id = i > 0 ? uplineIds[i-1] : null;
+      const parent_user_id = i > 0 ? uplineSlots[i-1].userId : null;
 
-      const slot = await tx.slot.findFirst({
-        where: { userId: u_owner, status: 'active' },
-        orderBy: { createdAt: 'asc' },
-      });
-      
       if (!slot) continue;
       
       if (level === 1) p1SlotId = slot.id;
@@ -311,9 +310,14 @@ async function placeInSponsorBoard(
       let pMemberId = null;
       if (parent_user_id) {
          const pMember = await tx.slotMember.findFirst({
-           where: { slotId: slot.id, userId: parent_user_id }
+           where: { slotId: slot.id, userId: parent_user_id },
+           orderBy: { createdAt: 'desc' }
          });
-         if (pMember) pMemberId = pMember.id;
+         if (pMember) {
+           pMemberId = pMember.id;
+         } else if (level > 1) {
+           continue;
+         }
       }
 
       const newMember = await tx.slotMember.create({
@@ -343,9 +347,9 @@ async function placeInSponsorBoard(
     }
 
     if (p1SlotId) {
-      await distributeCommissions(tx, p1SlotId, userId, cost, levelPercentages);
+      await distributeCommissions(tx, p1SlotId, userId, cost, levelPercentages, 'slot_open');
     } else {
-      await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages);
+      await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages, 'slot_open');
     }
   }
 }
@@ -355,7 +359,8 @@ async function placeInSponsorBoard(
  */
 async function distributeCommissions(
   tx: any, parentSlotId: string, activatingUserId: string,
-  cost: number, levelPercentages: Record<number, number>
+  cost: number, levelPercentages: Record<number, number>,
+  incomeType: string = 'slot_open'
 ) {
   let currentSlotId = parentSlotId;
   let currentLevel = 1;
@@ -397,7 +402,7 @@ async function distributeCommissions(
           level: currentLevel,
           percentage: commissionPercent * 100,
           amount: amount,
-          type: 'slot_open',
+          type: incomeType,
         },
       });
     }
