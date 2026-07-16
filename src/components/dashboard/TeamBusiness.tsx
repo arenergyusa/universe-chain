@@ -44,9 +44,10 @@ interface Summary {
 interface Props {
   slots: SlotData[];
   summary: Summary;
+  commissions: { level1: number; level2: number; level3: number };
 }
 
-export default function TeamBusiness({ slots, summary }: Props) {
+export default function TeamBusiness({ slots, summary, commissions }: Props) {
   // Group slots by slotNumber (latest active first, then completed, then retoped)
   const slotGroups = new Map<number, SlotData[]>();
   slots.forEach(s => {
@@ -311,7 +312,7 @@ export default function TeamBusiness({ slots, summary }: Props) {
                       const maxPositions = level === 1 ? 2 : level === 2 ? 4 : 8;
                       const levelMembers = getLevelMembers(slot, level);
                       const filledCount = levelMembers.filter(p => p.member !== null).length;
-                      const pctLabel = level === 1 ? '20%' : level === 2 ? '25%' : '10%';
+                      const pctLabel = level === 1 ? `${commissions.level1}%` : level === 2 ? `${commissions.level2}%` : `${commissions.level3}%`;
 
                       return (
                         <div key={level}>

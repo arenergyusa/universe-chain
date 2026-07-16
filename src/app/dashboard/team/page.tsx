@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/jwt';
 import { db } from '@/lib/db';
+import { getConfig } from '@/lib/config-cache';
 import TeamBusiness from '@/components/dashboard/TeamBusiness';
 
 export const metadata = {
@@ -93,6 +94,17 @@ export default async function TeamPage() {
     totalRetopAmount: retopTxs.reduce((s, t) => s + t.amount, 0),
   };
 
+  const parsePct = (val: unknown, fallback: number) => {
+    const num = Number(val);
+    return isNaN(num) || num < 0 || num > 100 ? fallback : num;
+  };
+
+  const commissions = {
+    level1: parsePct(await getConfig('LEVEL_1_PCT', 50), 50),
+    level2: parsePct(await getConfig('LEVEL_2_PCT', 25), 25),
+    level3: parsePct(await getConfig('LEVEL_3_PCT', 20), 20),
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
@@ -107,6 +119,7 @@ export default async function TeamPage() {
       <TeamBusiness
         slots={slotsData}
         summary={summary}
+        commissions={commissions}
       />
     </div>
   );
