@@ -15,7 +15,7 @@ export default function Privacy() {
           <div className="space-y-8 animate-fade-in">
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Privacy Policy</h1>
-              <p className="text-slate-500 text-sm">Last updated: June 2026. Your privacy matters to us — here's a straightforward explanation of how we handle your data.</p>
+              <p className="text-slate-500 text-sm">Last updated: June 2026. Your privacy matters to us — here&apos;s a straightforward explanation of how we handle your data.</p>
             </div>
 
             <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm">

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowRight, Shield, Zap, RefreshCw, Layers,
+  ArrowRight, Shield, Zap,
   ChevronDown, CheckCircle, Users, Heart, Globe, Lock
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
@@ -92,8 +92,25 @@ export default function Home() {
     }
   ];
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Universe Chain',
+    url: 'https://universechain.online',
+    description: 'A secure Web3 Ecosystem platform built on Binance Smart Chain.',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Universe Chain',
+      logo: 'https://universechain.online/og-image.png'
+    }
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar />
 
       <main className="flex-grow">
@@ -398,10 +415,10 @@ export default function Home() {
               <div className="lg:col-span-5 space-y-6 text-center lg:text-left lg:sticky lg:top-32">
                 <h2 className="text-xs font-bold tracking-wider text-sky-700 uppercase">FAQ</h2>
                 <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                  Got questions? <br className="hidden lg:block" /> We've got answers.
+                  Got questions? <br className="hidden lg:block" /> We&apos;ve got answers.
                 </h3>
                 <p className="text-slate-500 text-base leading-relaxed max-w-lg mx-auto lg:mx-0">
-                  If you can't find what you're looking for, feel free to reach out to our team via the contact page or community chat.
+                  If you can&apos;t find what you&apos;re looking for, feel free to reach out to our team via the contact page or community chat.
                 </p>
                 <div className="pt-2 flex justify-center lg:justify-start">
                   <Link

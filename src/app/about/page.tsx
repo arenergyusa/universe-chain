@@ -1,6 +1,6 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Shield, Users, Award, Heart, Lightbulb, Target } from 'lucide-react';
+import { Heart, Lightbulb, Target } from 'lucide-react';
 
 export const metadata = {
   title: 'About Us - Universe Chain',

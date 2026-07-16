@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import {
   Layers, Users, TrendingUp, DollarSign, RefreshCw, ChevronDown,
-  ChevronRight, User, ShieldCheck, Clock, Zap, BarChart3, ArrowUpDown,
+  ChevronRight, User, ShieldCheck, Zap, BarChart3, ArrowUpDown,
   Minus,
 } from 'lucide-react';
 
@@ -26,14 +26,6 @@ interface SlotData {
   members: MemberData[];
 }
 
-interface TxData {
-  id: string;
-  type: string;
-  amount: number;
-  status: string;
-  txHash: string | null;
-  createdAt: string;
-}
 
 interface Summary {
   totalSlots: number;
@@ -51,11 +43,10 @@ interface Summary {
 
 interface Props {
   slots: SlotData[];
-  transactions: TxData[];
   summary: Summary;
 }
 
-export default function TeamBusiness({ slots, transactions, summary }: Props) {
+export default function TeamBusiness({ slots, summary }: Props) {
   // Group slots by slotNumber (latest active first, then completed, then retoped)
   const slotGroups = new Map<number, SlotData[]>();
   slots.forEach(s => {
@@ -66,7 +57,7 @@ export default function TeamBusiness({ slots, transactions, summary }: Props) {
 
   // For each slotNumber, show the most relevant (active > completed > retoped)
   const displaySlots: SlotData[] = [];
-  slotGroups.forEach((group, num) => {
+  slotGroups.forEach((group) => {
     const active = [...group].reverse().find(s => s.status === 'active');
     const completed = [...group].reverse().find(s => s.status === 'completed');
     if (active) displaySlots.push(active);
@@ -94,16 +85,10 @@ export default function TeamBusiness({ slots, transactions, summary }: Props) {
     }
 
     // For L2 and L3, build based on parent positions
-    const parentLevel = slot.members.filter(m => m.level === level - 1);
+
     const positions: { position: string; label: string; member: MemberData | null }[] = [];
 
-    // Sort parents by position tree order
-    const sortedParents = level === 2
-      ? [
-          parentLevel.find(m => m.position === 'left'),
-          parentLevel.find(m => m.position === 'right'),
-        ]
-      : parentLevel;
+
 
     if (level === 2) {
       const l1Left = slot.members.find(m => m.level === 1 && m.position === 'left');
@@ -420,61 +405,6 @@ export default function TeamBusiness({ slots, transactions, summary }: Props) {
         )}
       </div>
 
-      {/* ── Section 3: Payment History ── */}
-      <div className="glass-card bg-white border border-slate-200/60 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="flex items-center space-x-3 pb-6 border-b border-slate-100">
-          <DollarSign className="w-5 h-5 text-slate-400" />
-          <h3 className="font-extrabold text-slate-800 text-sm sm:text-base">Payment History</h3>
-        </div>
-
-        <div className="divide-y divide-slate-100">
-          {transactions.length === 0 ? (
-            <div className="text-center py-16">
-              <Clock className="w-10 h-10 text-slate-300 mx-auto" />
-              <p className="text-sm text-slate-400 mt-2.5 font-medium">No payments logged yet</p>
-            </div>
-          ) : (
-            transactions.map((tx) => {
-              const isEarning = tx.type === 'commission';
-              return (
-                <div key={tx.id} className="py-4 flex items-center justify-between gap-4">
-                  <div className="flex items-center space-x-4 min-w-0">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border flex-shrink-0 ${
-                      tx.type === 'activation' ? 'bg-sky-50 border-sky-100 text-sky-600' :
-                      tx.type === 'retop' ? 'bg-amber-50 border-amber-100 text-amber-600' :
-                      'bg-emerald-50 border-emerald-100 text-emerald-600'
-                    }`}>
-                      {tx.type === 'activation' ? <Zap className="w-5 h-5" /> :
-                       tx.type === 'retop' ? <RefreshCw className="w-5 h-5" /> :
-                       <TrendingUp className="w-5 h-5" />}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-bold text-slate-800 capitalize">{tx.type === 'activation' ? 'ID Activation' : tx.type === 'retop' ? 'ID Retop' : 'Commission'}</div>
-                      <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{tx.status}</div>
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className={`text-sm font-black ${isEarning ? 'text-emerald-600' : 'text-slate-800'}`}>
-                      {isEarning ? '+' : '-'}{tx.amount.toFixed(2)} USDT
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">{formatDate(tx.createdAt)}</div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Net Summary Row */}
-        {transactions.length > 0 && (
-          <div className="mt-6 pt-6 border-t-2 border-slate-200 flex items-center justify-between">
-            <span className="text-sm font-extrabold text-slate-700">Net Profit / Loss</span>
-            <span className={`text-lg font-black ${summary.netPnL >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {summary.netPnL >= 0 ? '+' : ''}{summary.netPnL.toFixed(2)} USDT
-            </span>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

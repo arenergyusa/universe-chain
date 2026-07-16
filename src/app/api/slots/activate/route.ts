@@ -1,33 +1,35 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/jwt';
 import { db } from '@/lib/db';
 import { getConfig } from '@/lib/config-cache';
 import { checkRateLimit } from '@/lib/rate-limit';
+import Decimal from 'decimal.js';
 import { Prisma } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
-    const rateLimitResponse = checkRateLimit(req, 10, 60000);
+    const rateLimitResponse = await checkRateLimit(req, 10, 60000);
     if (rateLimitResponse) return rateLimitResponse;
 
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized session.' }, { status: 401 });
+      return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized session.' } }, { status: 401 });
     }
 
     const { type } = await req.json(); // 'activate' or 'retop'
 
     if (type !== 'activate' && type !== 'retop') {
-      return NextResponse.json({ error: 'Invalid action type.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid action type.' } }, { status: 400 });
     }
 
     const slotOpenAmount = parseFloat(await getConfig('SLOT_OPEN_AMOUNT', 100));
     const retopAmount = parseFloat(await getConfig('RETOP_AMOUNT', 100));
 
     const levelPercentages: Record<number, number> = {
-      1: parseFloat(await getConfig('LEVEL_1_PCT', 20)) / 100,
+      1: parseFloat(await getConfig('LEVEL_1_PCT', 50)) / 100,
       2: parseFloat(await getConfig('LEVEL_2_PCT', 25)) / 100,
-      3: parseFloat(await getConfig('LEVEL_3_PCT', 10)) / 100,
+      3: parseFloat(await getConfig('LEVEL_3_PCT', 20)) / 100,
     };
 
     const user = await db.user.findUnique({
@@ -35,7 +37,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+      return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found.' } }, { status: 404 });
     }
 
     // ─── ID ACTIVATION (one-time) ───
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
         timeout: 15000,
       });
 
-      return NextResponse.json(result);
+      return NextResponse.json({ success: true, data: result });
     }
 
     // ─── ID RETOP (per slot completion) ───
@@ -156,16 +158,19 @@ export async function POST(req: NextRequest) {
         timeout: 15000,
       });
 
-      return NextResponse.json(result);
+      return NextResponse.json({ success: true, data: result });
     }
 
-    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
-  } catch (error: any) {
+    return NextResponse.json({ success: false, error: { code: 'BAD_REQUEST', message: 'Invalid request.' } }, { status: 400 });
+  } catch (error: unknown) {
     console.error('Slot activation error:', error);
-    if (error.message?.startsWith('VALIDATION:')) {
-      return NextResponse.json({ error: error.message.replace('VALIDATION:', '') }, { status: 400 });
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid JSON body.' } }, { status: 400 });
     }
-    return NextResponse.json({ error: 'An unexpected error occurred processing your request.' }, { status: 500 });
+    if (error instanceof Error && error.message?.startsWith('VALIDATION:')) {
+      return NextResponse.json({ success: false, error: { code: 'VALIDATION_ERROR', message: error.message.replace('VALIDATION:', '') } }, { status: 400 });
+    }
+    return NextResponse.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred processing your request.' } }, { status: 500 });
   }
 }
 
@@ -180,17 +185,20 @@ async function placeInSponsorBoard(
   let placementSlot: any = null;
 
   if (sponsorId) {
-    // Find sponsor's active slots with members
+    // Find sponsor's active slots with member counts
     const sponsorSlots = await tx.slot.findMany({
       where: { userId: sponsorId, status: 'active' },
       orderBy: { slotNumber: 'asc' },
-      include: { members: true },
+      select: { id: true, userId: true, _count: { select: { members: true } } },
     });
 
     // Find first slot with < 14 members
     for (const slot of sponsorSlots) {
-      if (slot.members.length < 14) {
-        placementSlot = slot;
+      if (slot._count.members < 14) {
+        placementSlot = await tx.slot.findUnique({
+          where: { id: slot.id },
+          include: { members: true },
+        });
         break;
       }
     }
@@ -199,14 +207,17 @@ async function placeInSponsorBoard(
   // Fallback: if no sponsor or sponsor slot is full, find any available slot globally
   if (!placementSlot) {
     const allActiveSlots = await tx.slot.findMany({
-      where: { status: 'active' },
+      where: { status: 'active', userId: { not: userId } },
       orderBy: { createdAt: 'asc' },
-      include: { members: true },
+      select: { id: true, userId: true, _count: { select: { members: true } } },
     });
 
     for (const slot of allActiveSlots) {
-      if (slot.members.length < 14 && slot.userId !== userId) {
-        placementSlot = slot;
+      if (slot._count.members < 14) {
+        placementSlot = await tx.slot.findUnique({
+          where: { id: slot.id },
+          include: { members: true },
+        });
         break;
       }
     }
@@ -216,7 +227,7 @@ async function placeInSponsorBoard(
   if (placementSlot && placementSlot.userId !== userId) {
     const members = placementSlot.members;
     let targetParentMemberId: string | null = null;
-    let targetLevel = 1;
+
     let targetPosition = 'left';
 
     const l1 = members.filter((m: any) => m.level === 1);
@@ -232,22 +243,22 @@ async function placeInSponsorBoard(
 
     if (l1.length < 2) {
       targetParentMemberId = null;
-      targetLevel = 1;
+
       targetPosition = l1.some((m: any) => m.position === 'left') ? 'right' : 'left';
     } else {
       const l1Left = l1.find((m: any) => m.position === 'left');
       const l1Right = l1.find((m: any) => m.position === 'right');
-      
+
       const parentsToCheck = [];
       if (l1Left) parentsToCheck.push({ member: l1Left, nextLevel: 2 });
       if (l1Right) parentsToCheck.push({ member: l1Right, nextLevel: 2 });
       if (l1Left) {
-         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Left.id && m.position === 'left'), nextLevel: 3 });
-         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Left.id && m.position === 'right'), nextLevel: 3 });
+        parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Left.id && m.position === 'left'), nextLevel: 3 });
+        parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Left.id && m.position === 'right'), nextLevel: 3 });
       }
       if (l1Right) {
-         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Right.id && m.position === 'left'), nextLevel: 3 });
-         parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Right.id && m.position === 'right'), nextLevel: 3 });
+        parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Right.id && m.position === 'left'), nextLevel: 3 });
+        parentsToCheck.push({ member: l2.find((m: any) => m.parentMemberId === l1Right.id && m.position === 'right'), nextLevel: 3 });
       }
 
       for (const p of parentsToCheck) {
@@ -255,7 +266,7 @@ async function placeInSponsorBoard(
         const children = getChildren(p.nextLevel, p.member.id);
         if (children.length < 2) {
           targetParentMemberId = p.member.id;
-          targetLevel = p.nextLevel;
+
           targetPosition = children.some((m: any) => m.position === 'left') ? 'right' : 'left';
           break;
         }
@@ -265,77 +276,74 @@ async function placeInSponsorBoard(
     let uplineSlots: any[] = [];
     let currParentId = targetParentMemberId;
     while (currParentId) {
-       const m = members.find((x: any) => x.id === currParentId);
-       if (m) {
-         const mSlot = await tx.slot.findFirst({
-           where: { userId: m.userId, status: 'active' },
-           orderBy: { createdAt: 'asc' },
-           include: { members: true },
-         });
-         if (mSlot && mSlot.status === 'active' && mSlot.members.length < 14) {
-           uplineSlots.push(mSlot);
-         } else {
-           uplineSlots.push(null);
-         }
-         currParentId = m.parentMemberId;
-       } else {
-         break;
-       }
+      const m = members.find((x: any) => x.id === currParentId);
+      if (m) {
+        const mSlot = await tx.slot.findFirst({
+          where: { userId: m.userId, status: 'active' },
+          orderBy: { createdAt: 'asc' },
+          include: { members: true },
+        });
+        if (mSlot && mSlot.status === 'active' && mSlot.members.length < 14) {
+          uplineSlots.push(mSlot);
+        } else {
+          throw new Error('VALIDATION:Required parent slot is missing, inactive, or full.');
+        }
+        currParentId = m.parentMemberId;
+      } else {
+        break;
+      }
     }
     uplineSlots.push(placementSlot);
 
     let currentOwnerId = placementSlot.userId;
     while (uplineSlots.length < 3) {
-       const ownerL1 = await tx.slotMember.findFirst({
-         where: { userId: currentOwnerId, level: 1 },
-         orderBy: { createdAt: 'desc' },
-       });
-       if (ownerL1) {
-         const parentSlot = await tx.slot.findUnique({ 
-           where: { id: ownerL1.slotId },
-           include: { members: true },
-         });
-         if (parentSlot && parentSlot.status === 'active' && parentSlot.members.length < 14) {
-            uplineSlots.push(parentSlot);
-            currentOwnerId = parentSlot.userId;
-         } else break;
-       } else break;
+      const ownerL1 = await tx.slotMember.findFirst({
+        where: { userId: currentOwnerId, level: 1 },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (ownerL1) {
+        const parentSlot = await tx.slot.findUnique({
+          where: { id: ownerL1.slotId },
+          include: { members: true },
+        });
+        if (parentSlot && parentSlot.status === 'active' && parentSlot.members.length < 14) {
+          uplineSlots.push(parentSlot);
+          currentOwnerId = parentSlot.userId;
+        } else break;
+      } else break;
     }
 
     uplineSlots = uplineSlots.slice(0, 3);
-    
+
     let p1SlotId = null;
-    let allPlacementsSuccessful = true;
 
     for (let i = 0; i < uplineSlots.length; i++) {
       const slot = uplineSlots[i];
       const level = i + 1;
-      const parentSlotInfo = i > 0 ? uplineSlots[i-1] : null;
-      const parent_user_id = parentSlotInfo ? parentSlotInfo.userId : null;
+      const parent_user_id = i > 0 && uplineSlots.length > 0 ? uplineSlots[0].userId : null;
 
       if (!slot) {
-        allPlacementsSuccessful = false;
-        continue;
+        throw new Error('VALIDATION:Required parent slot is missing.');
       }
-      
+
       if (level === 1) p1SlotId = slot.id;
 
       let pMemberId = null;
       if (parent_user_id) {
-         const pMember = await tx.slotMember.findFirst({
-           where: { slotId: slot.id, userId: parent_user_id },
-           orderBy: { createdAt: 'desc' }
-         });
-         if (pMember) {
-           pMemberId = pMember.id;
-         } else if (level > 1) {
-           allPlacementsSuccessful = false;
-           continue;
-         }
+        const pMember = await tx.slotMember.findFirst({
+          where: { slotId: slot.id, userId: parent_user_id },
+          orderBy: { createdAt: 'desc' }
+        });
+        if (pMember) {
+          pMemberId = pMember.id;
+        } else if (level > 1) {
+          throw new Error('VALIDATION:Required parent member is missing.');
+        }
       } else if (level > 1) {
-         allPlacementsSuccessful = false;
-         continue;
+        throw new Error('VALIDATION:Parent user ID is missing.');
       }
+
+      await validatePlacement(tx, pMemberId);
 
       const newMember = await tx.slotMember.create({
         data: {
@@ -363,12 +371,10 @@ async function placeInSponsorBoard(
       }
     }
 
-    if (allPlacementsSuccessful) {
-      if (p1SlotId) {
-        await distributeCommissions(tx, p1SlotId, userId, cost, levelPercentages, 'slot_open');
-      } else {
-        await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages, 'slot_open');
-      }
+    if (p1SlotId) {
+      await distributeCommissions(tx, p1SlotId, userId, cost, levelPercentages, 'slot_open');
+    } else {
+      await distributeCommissions(tx, placementSlot.id, userId, cost, levelPercentages, 'slot_open');
     }
   }
 }
@@ -389,7 +395,9 @@ async function distributeCommissions(
     if (!currentBoard) break;
 
     const commissionPercent = levelPercentages[currentLevel] || 0;
-    const amount = cost * commissionPercent;
+    const costDec = new Decimal(cost);
+    const percentDec = new Decimal(commissionPercent);
+    const amount = costDec.mul(percentDec).toNumber();
 
     if (amount > 0) {
       // Credit board owner's balance
@@ -412,7 +420,7 @@ async function distributeCommissions(
         },
       });
 
-      // Log referral income
+      // Log referral reward
       await tx.referralIncome.create({
         data: {
           userId: currentBoard.userId,
@@ -439,5 +447,32 @@ async function distributeCommissions(
     }
 
     currentLevel++;
+  }
+}
+
+/**
+ * Validates placement to reject self-parenting and cyclic ancestry.
+ */
+async function validatePlacement(tx: any, parentMemberId: string | null) {
+  if (!parentMemberId) return;
+  let currentId: string | null = parentMemberId;
+  const visited = new Set<string>();
+  while (currentId) {
+    if (visited.has(currentId)) {
+      throw new Error('VALIDATION:Cyclic ancestry detected.');
+    }
+    visited.add(currentId);
+    const ancestor: { id: string; parentMemberId: string | null } | null = await tx.slotMember.findUnique({
+      where: { id: currentId },
+      select: { id: true, parentMemberId: true }
+    });
+    if (ancestor) {
+      if (ancestor.parentMemberId === ancestor.id) {
+        throw new Error('VALIDATION:Self-parenting detected.');
+      }
+      currentId = ancestor.parentMemberId;
+    } else {
+      break;
+    }
   }
 }

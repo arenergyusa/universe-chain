@@ -15,7 +15,7 @@ export default function Terms() {
           <div className="space-y-8 animate-fade-in">
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Terms & Conditions</h1>
-              <p className="text-slate-500 text-sm">Last updated: June 2026. We've tried to keep this readable — because terms shouldn't require a law degree.</p>
+              <p className="text-slate-500 text-sm">Last updated: June 2026. We&apos;ve tried to keep this readable — because terms shouldn&apos;t require a law degree.</p>
             </div>
 
             <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm">

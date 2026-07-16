@@ -11,10 +11,10 @@ const globalForPrisma = globalThis as unknown as {
 const poolConfig = {
   connectionString: process.env.DATABASE_URL,
   max: 20, // Limit max connections per instance
-  idleTimeoutMillis: 10000, // Close idle connections after 10s to prevent silent drops
-  connectionTimeoutMillis: 10000, // Give more time to establish connections
+  idleTimeoutMillis: 30000, // Close idle connections after 30s
+  connectionTimeoutMillis: 30000, // Give Neon 30s to cold start
   ssl: {
-    rejectUnauthorized: false,
+    rejectUnauthorized: true,
   },
   keepAlive: true, // Enable TCP Keep-Alives to prevent NAT timeouts
 };

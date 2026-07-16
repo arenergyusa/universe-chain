@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Layers, ShieldCheck, HelpCircle, Loader2, Award, User, MoveHorizontal, RefreshCw, Zap, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 interface SlotMemberData {
   id: string;
@@ -69,7 +70,7 @@ export default function SlotsManager({
         body: JSON.stringify({ type: 'activate' }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || 'Activation failed.');
+      if (!res.ok || !data.success) throw new Error(data.error?.message || 'Activation failed.');
       toast.success('ID activated successfully! Slot 1 is now live.');
       router.refresh();
     } catch (err: unknown) {
@@ -92,8 +93,8 @@ export default function SlotsManager({
         body: JSON.stringify({ type: 'retop' }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || 'Retop failed.');
-      toast.success(`Slot ${data.retopedSlotNumber} retoped successfully! New cycle started.`);
+      if (!res.ok || !data.success) throw new Error(data.error?.message || 'Retop failed.');
+      toast.success(`Slot ${data.data?.retopedSlotNumber} retoped successfully! New cycle started.`);
       router.refresh();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'An unexpected error occurred.');
@@ -104,7 +105,7 @@ export default function SlotsManager({
 
   const formatAddress = (addr: string) => `${addr.substring(0, 4)}...${addr.substring(addr.length - 4)}`;
 
-  // ─── Binary Tree Renderer ───
+  // ─── Structure Renderer ───
   const renderBinaryTree = () => {
     if (!currentSlot) return null;
     const members = currentSlot.members;
@@ -273,17 +274,17 @@ export default function SlotsManager({
               </p>
             </div>
           </div>
-          <button
+          <Button
             onClick={handleActivate}
             disabled={loading !== null}
-            className="w-full md:w-auto inline-flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-8 py-3.5 rounded-xl transition-colors flex-shrink-0"
+            className="w-full md:w-auto px-8 py-6 rounded-xl flex-shrink-0"
           >
             {loading === 'activate' ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /><span>Processing...</span></>
+              <><Loader2 className="w-4 h-4 animate-spin mr-2" /><span>Processing...</span></>
             ) : (
-              <><Zap className="w-4 h-4" /><span>Activate ID — {activationCost} USDT</span></>
+              <><Zap className="w-4 h-4 mr-2" /><span>Activate ID — {activationCost} USDT</span></>
             )}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -301,17 +302,17 @@ export default function SlotsManager({
               </p>
             </div>
           </div>
-          <button
+          <Button
             onClick={handleRetop}
             disabled={loading !== null}
-            className="w-full md:w-auto inline-flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold px-8 py-3.5 rounded-xl transition-colors flex-shrink-0"
+            className="w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white px-8 py-6 rounded-xl flex-shrink-0"
           >
             {loading === 'retop' ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /><span>Processing...</span></>
+              <><Loader2 className="w-4 h-4 animate-spin mr-2" /><span>Processing...</span></>
             ) : (
-              <><RefreshCw className="w-4 h-4" /><span>Retop ID — {retopCost} USDT</span></>
+              <><RefreshCw className="w-4 h-4 mr-2" /><span>Retop ID — {retopCost} USDT</span></>
             )}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -412,7 +413,7 @@ export default function SlotsManager({
           <div className="pb-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                Tree (Slot {selectedSlotNum})
+                Structure (Slot {selectedSlotNum})
                 {(slotCycles.get(selectedSlotNum) || 0) > 1 && (
                   <span className="text-xs font-bold text-sky-600 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
                     Cycle {slotCycles.get(selectedSlotNum)}
@@ -420,7 +421,7 @@ export default function SlotsManager({
                 )}
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Analyze the binary distribution tree and track downline slot placements.
+                Analyze the ecosystem distribution structure and track downline slot placements.
               </p>
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-full w-fit">
@@ -432,7 +433,7 @@ export default function SlotsManager({
             <div className="pt-6">
               {renderBinaryTree()}
               <div className="text-center text-xs text-slate-400 mt-8 leading-relaxed max-w-sm mx-auto">
-                Each active slot supports up to 14 placements across 3 binary levels. When your tree is complete, the cycle finishes.
+                Each active slot supports up to 14 placements across 3 levels. When your structure is complete, the cycle finishes.
               </div>
             </div>
           ) : (
@@ -447,7 +448,7 @@ export default function SlotsManager({
                 <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
                   {completedSlotForSelected
                     ? 'This slot has completed its cycle. Use the Retop button above to reactivate it.'
-                    : 'Select an active slot to view its binary tree.'}
+                    : 'Select an active slot to view its structure.'}
                 </p>
               </div>
             </div>
@@ -465,7 +466,7 @@ export default function SlotsManager({
             <div className="space-y-1">
               <p className="text-sm font-extrabold text-slate-800">No Active Slots</p>
               <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-                Activate your ID above to create your first slot and start building your matrix.
+                Activate your ID above to create your first slot and start building your community.
               </p>
             </div>
           </div>

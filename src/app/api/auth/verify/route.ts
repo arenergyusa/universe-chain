@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { setSession } from '@/lib/jwt';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { authVerifySchema } from '@/lib/validators';
 
 
 // Helper to generate a unique referral code
@@ -33,19 +34,20 @@ async function generateUniqueReferralCode(): Promise<string> {
 export async function POST(req: NextRequest) {
   try {
     // Rate limit: max 5 verification attempts per minute per IP
-    const rateLimitResponse = checkRateLimit(req, 5, 60000);
+    const rateLimitResponse = await checkRateLimit(req, 5, 60000);
     if (rateLimitResponse) return rateLimitResponse;
 
     const body = await req.json();
-    const { message, signature, referrerCode } = body;
+    const result = authVerifySchema.safeParse(body);
 
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json({ error: 'Invalid message format.' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ 
+        success: false, 
+        error: { code: 'VALIDATION_ERROR', message: result.error.issues[0].message } 
+      }, { status: 400 });
     }
 
-    if (!signature || typeof signature !== 'string' || !/^0x[0-9a-fA-F]{130}$/.test(signature)) {
-      return NextResponse.json({ error: 'Invalid signature format.' }, { status: 400 });
-    }
+    const { message, signature, referrerCode } = result.data;
 
     // Parse SIWE message
     const siweMessage = new SiweMessage(message);
@@ -55,7 +57,7 @@ export async function POST(req: NextRequest) {
     const nonce = cookieStore.get('universechain_nonce')?.value;
 
     if (!nonce) {
-      return NextResponse.json({ error: 'Session expired. Please try again.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Session expired. Please try again.' } }, { status: 401 });
     }
 
     // Verify SIWE signature
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!verification.success) {
-      return NextResponse.json({ error: 'Signature verification failed.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Signature verification failed.' } }, { status: 401 });
     }
 
     const walletAddress = verification.data.address;
@@ -82,32 +84,46 @@ export async function POST(req: NextRequest) {
       // Register new user
       // 1. Process referrer if provided
       let referredBy = null;
-      if (referrerCode) {
-        referredBy = await db.user.findUnique({
-          where: { referralCode: referrerCode },
-          include: { slots: true }
-        });
-
-        if (referredBy) {
-          // Calculate max directs allowed based on unique slot numbers (Boards)
-          // 1 Slot = 2 directs, 2 Slots = 4 directs, etc.
-          const uniqueSlotsCount = new Set(referredBy.slots.map(s => s.slotNumber)).size;
-          const maxDirects = uniqueSlotsCount * 2;
-
-          if (referredBy.directReferralCount >= maxDirects) {
-            return NextResponse.json({ 
-              error: 'Referrer has reached their direct invite limit. They must open a new slot to invite more members.' 
-            }, { status: 400 });
-          }
-        }
+      if (!referrerCode) {
+        return NextResponse.json({ 
+          success: false, 
+          error: { code: 'BAD_REQUEST', message: 'A valid referral code is required to register.' } 
+        }, { status: 400 });
       }
+
+      referredBy = await db.user.findUnique({
+        where: { referralCode: referrerCode },
+        include: { slots: true }
+      });
+
+      if (!referredBy) {
+        return NextResponse.json({ 
+          success: false, 
+          error: { code: 'BAD_REQUEST', message: 'Invalid referral code.' } 
+        }, { status: 400 });
+      }
+
+      if (referredBy.status !== 'active') {
+        return NextResponse.json({ 
+          success: false, 
+          error: { code: 'BAD_REQUEST', message: 'Referrer is not an active user. You can only join through an active user.' } 
+        }, { status: 400 });
+      }
+
+      // Calculate max directs allowed based on unique slot numbers (Boards)
+      // 1 Slot = 2 directs, 2 Slots = 4 directs, etc.
+      const uniqueSlotsCount = new Set(referredBy.slots.map(s => s.slotNumber)).size;
+      const maxDirects = uniqueSlotsCount * 2;
+
+
 
       // 2. Generate unique referral code
       const userReferralCode = await generateUniqueReferralCode();
 
       // 3. Create user
-      user = await db.$transaction(async (tx) => {
-        // Create the user
+      try {
+        user = await db.$transaction(async (tx) => {
+          // Create the user
         const newUser = await tx.user.create({
           data: {
             walletAddress,
@@ -117,20 +133,40 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // If referred, increment referrer's direct referral count
+        // If referred, increment referrer's direct referral count atomically
         if (referredBy) {
-          await tx.user.update({
-            where: { id: referredBy.id },
+          const updateResult = await tx.user.updateMany({
+            where: { 
+              id: referredBy.id,
+              directReferralCount: { lt: maxDirects }
+            },
             data: {
               directReferralCount: { increment: 1 },
             },
           });
+
+          if (updateResult.count === 0) {
+            throw new Error('REFERRER_LIMIT_REACHED');
+          }
         }
 
         return tx.user.findUniqueOrThrow({
           where: { id: newUser.id }
         });
       });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === 'REFERRER_LIMIT_REACHED') {
+        return NextResponse.json({ 
+          success: false, 
+          error: { code: 'BAD_REQUEST', message: 'Referrer has reached their direct invite limit. They must open a new slot to invite more members.' } 
+        }, { status: 400 });
+      }
+      throw error;
+    }
+  }
+
+    if (!user) {
+      return NextResponse.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'User creation failed.' } }, { status: 500 });
     }
 
     // Set session cookie
@@ -141,17 +177,22 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        walletAddress: user.walletAddress,
-        referralCode: user.referralCode,
-        status: user.status,
-        internalBalance: user.internalBalance.toString(),
-        totalEarned: user.totalEarned.toString()
-      },
+      data: {
+        user: {
+          id: user.id,
+          walletAddress: user.walletAddress,
+          referralCode: user.referralCode,
+          status: user.status,
+          internalBalance: user.internalBalance.toString(),
+          totalEarned: user.totalEarned.toString()
+        }
+      }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Malformed JSON payload' } }, { status: 400 });
+    }
     console.error('SIWE Verification error:', error);
-    return NextResponse.json({ error: 'An error occurred during verification.' }, { status: 500 });
+    return NextResponse.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'An error occurred during verification.' } }, { status: 500 });
   }
 }

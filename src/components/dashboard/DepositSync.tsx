@@ -1,13 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RefreshCw, CheckCircle2, AlertCircle, Copy, Check, ExternalLink, Send } from 'lucide-react';
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
-import { parseUnits } from 'viem';
+import { RefreshCw, Send } from 'lucide-react';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useBalance, useReadContract, useDisconnect } from 'wagmi';
+import { useAppKit } from '@reown/appkit/react';
+import { parseUnits, formatUnits } from 'viem';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 interface DepositSyncProps {
   adminAddress: string;
+  userAddress: string;
 }
 
 const USDT_CONTRACT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
@@ -26,17 +32,36 @@ const usdtAbi = [
   },
 ];
 
-export default function DepositSync({ adminAddress }: DepositSyncProps) {
+export default function DepositSync({ adminAddress, userAddress }: DepositSyncProps) {
   const router = useRouter();
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { open } = useAppKit();
 
-  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState<string>('100');
-  const [status, setStatus] = useState<{
-    type: 'idle' | 'success' | 'info' | 'error';
-    message: string;
-  }>({ type: 'idle', message: '' });
+
+  const { data: bnbBalance } = useBalance({
+    address: address,
+  });
+
+  const { data: usdtBalance } = useReadContract({
+    address: USDT_CONTRACT_ADDRESS as `0x${string}`,
+    abi: [{
+      constant: true,
+      inputs: [{ name: 'account', type: 'address' }],
+      name: 'balanceOf',
+      outputs: [{ name: '', type: 'uint256' }],
+      payable: false,
+      stateMutability: 'view',
+      type: 'function',
+    }],
+    functionName: 'balanceOf',
+    args: address ? [address as `0x${string}`] : undefined,
+    query: {
+      enabled: !!address,
+    }
+  });
 
   // Wagmi hooks for smart contract interaction
   const { data: hash, isPending: isWritePending, writeContractAsync } = useWriteContract();
@@ -45,13 +70,6 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
     hash,
   });
 
-  // Listen for successful on-chain transaction confirmation
-  useEffect(() => {
-    if (isConfirmed) {
-      setStatus({ type: 'success', message: 'Transaction confirmed on BSC! Verifying internal balance...' });
-      handleVerify(); // Automatically trigger backend verification once confirmed
-    }
-  }, [isConfirmed]);
 
   // Auto-refresh balance every 30 seconds
   useEffect(() => {
@@ -62,19 +80,45 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
   }, [router]);
 
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(adminAddress);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+
 
   const handleDirectDeposit = async () => {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      setStatus({ type: 'error', message: 'Please enter a valid amount.' });
+      toast.error('Please enter a valid amount.');
       return;
     }
 
-    setStatus({ type: 'info', message: 'Please confirm the transaction in your wallet...' });
+    if (!isConnected) {
+      await open();
+      return; // Stop execution; user will click again after connection or modal close
+    }
+
+    if (address && address.toLowerCase() !== userAddress.toLowerCase()) {
+      toast.error('The connected wallet does not match your registered account. Disconnecting...');
+      disconnect();
+      return;
+    }
+
+    // Pre-flight checks
+    if (bnbBalance && Number(formatUnits(bnbBalance.value, bnbBalance.decimals)) < 0.0005) {
+      toast.error('Insufficient BNB for gas fees. Please add a small amount of BNB to process this transaction.');
+      return;
+    }
+
+    if (usdtBalance !== undefined) {
+      const usdtAmtStr = formatUnits(usdtBalance as bigint, 18);
+      if (Number(amount) > Number(usdtAmtStr)) {
+        toast.error('Insufficient USDT balance in your connected wallet.');
+        return;
+      }
+    }
+
+    if (!adminAddress || adminAddress === '0x0000000000000000000000000000000000000000' || adminAddress.length !== 42) {
+      toast.error('System configuration error: Invalid admin deposit address.');
+      return;
+    }
+
+    toast.info('Please confirm the transaction in your wallet...');
 
     try {
       await writeContractAsync({
@@ -88,14 +132,14 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
 
       // Check if user rejected
       if (errorMsg.includes('User rejected') || errorMsg.includes('rejected')) {
-        setStatus({ type: 'error', message: 'Transaction was rejected by your wallet.' });
+        toast.error('Transaction was rejected by your wallet.');
       }
       // Check for insufficient balance
       else if (errorMsg.includes('exceeds balance') || errorMsg.includes('insufficient funds')) {
-        setStatus({ type: 'error', message: 'Insufficient USDT balance in your wallet.' });
+        toast.error('Insufficient USDT balance in your wallet.');
       }
       else {
-        setStatus({ type: 'error', message: 'Failed to initiate transaction. Check your balance or network.' });
+        toast.error('Failed to initiate transaction. Check your balance or network.');
       }
     }
   };
@@ -103,7 +147,7 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
   const handleVerify = async () => {
     if (loading) return;
     setLoading(true);
-    setStatus({ type: 'info', message: 'Scanning BSC blockchain for new USDT deposits...' });
+    toast.info('Scanning BSC blockchain for new USDT deposits...');
 
     try {
       const res = await fetch('/api/deposit/verify', {
@@ -114,33 +158,46 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to verify deposit.');
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || 'Failed to verify deposit.');
       }
 
-      if (data.credited > 0) {
-        setStatus({
-          type: 'success',
-          message: `Success! Credited ${parseFloat(data.credited).toFixed(2)} USDT to your internal balance!`,
-        });
+      const creditedAmount = data.data?.credited || 0;
+
+      if (creditedAmount > 0) {
+        toast.success(`Success! Credited ${parseFloat(creditedAmount).toFixed(2)} USDT to your internal balance!`);
         setAmount('');
         router.refresh();
       } else {
-        setStatus({
-          type: 'info',
-          message: 'No new deposits found. If you just sent the funds, please wait a minute for BSC block confirmations and try again.',
-        });
+        toast.info('No new deposits found. If you just sent the funds, please wait a minute for BSC block confirmations and try again.');
       }
     } catch (err: any) {
       console.error(err);
-      setStatus({
-        type: 'error',
-        message: err.message || 'Verification failed. Please try again later.',
-      });
+      toast.error(err.message || 'Verification failed. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
+
+  // Listen for successful on-chain transaction confirmation
+  useEffect(() => {
+    if (isConfirmed) {
+      setTimeout(() => {
+        toast.success('Transaction confirmed on BSC! Verifying internal balance...');
+      }, 0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleVerify(); // Automatically trigger backend verification once confirmed
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConfirmed]);
+
+  // Auto-disconnect if wallet changes to a wrong one
+  useEffect(() => {
+    if (isConnected && address && address.toLowerCase() !== userAddress.toLowerCase()) {
+      toast.error('Wallet mismatch detected! Please connect with your registered wallet.');
+      disconnect();
+    }
+  }, [isConnected, address, userAddress, disconnect]);
 
   return (
     <div className="space-y-6">
@@ -164,57 +221,38 @@ export default function DepositSync({ adminAddress }: DepositSyncProps) {
 
         <div className="flex flex-col sm:flex-row gap-3 relative z-10">
           <div className="relative flex-1">
-            <input
+            <Input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Amount (USDT)"
-              className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              className="w-full bg-slate-50 border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-6 focus-visible:ring-emerald-500/50 transition-all"
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
               USDT
             </div>
           </div>
 
-          <button
+          <Button
             onClick={handleDirectDeposit}
-            disabled={isWritePending || isConfirming || !isConnected}
-            className="sm:w-auto w-full inline-flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-sm shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isWritePending || isConfirming}
+            className="sm:w-auto w-full inline-flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold py-6 px-6 rounded-xl transition-all duration-200 shadow-sm shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isWritePending || isConfirming ? (
-              <RefreshCw className="w-4.5 h-4.5 animate-spin" />
+              <RefreshCw className="w-4.5 h-4.5 animate-spin mr-2" />
             ) : (
-              <Send className="w-4.5 h-4.5" />
+              <Send className="w-4.5 h-4.5 mr-2" />
             )}
             <span>
               {isWritePending ? 'Confirm in Wallet...' :
                 isConfirming ? 'Confirming Block...' :
-                  !isConnected ? 'Wallet Disconnected' : 'Send USDT'}
+                  !isConnected ? 'Connect to Deposit' : 'Send USDT'}
             </span>
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Status Messages */}
-      {status.type !== 'idle' && (
-        <div
-          className={`p-4 rounded-2xl flex items-start gap-3 text-xs font-semibold border animate-fade-in ${status.type === 'success'
-              ? 'bg-emerald-50 border-emerald-150 text-emerald-800'
-              : status.type === 'error'
-                ? 'bg-rose-50 border-rose-150 text-rose-800'
-                : 'bg-sky-50 border-sky-150 text-sky-800'
-            }`}
-        >
-          {status.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-          ) : status.type === 'error' ? (
-            <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-          ) : (
-            <RefreshCw className="w-5 h-5 text-sky-600 flex-shrink-0 animate-spin mt-0.5" />
-          )}
-          <div className="leading-relaxed">{status.message}</div>
-        </div>
-      )}
+
     </div>
   );
 }

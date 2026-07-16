@@ -55,10 +55,13 @@ model SlotMember {
   userId         String
   user           User     @relation(fields: [userId], references: [id])
   parentMemberId String?
+  parentMember   SlotMember?  @relation("ParentChild", fields: [parentMemberId, slotId], references: [id, slotId], onDelete: SetNull)
+  children       SlotMember[] @relation("ParentChild")
   position       String   // "left", "right"
   level          Int      // 1, 2, or 3
   createdAt      DateTime @default(now())
 
+  @@unique([id, slotId])
   @@index([slotId])
   @@index([userId])
   @@index([parentMemberId])
@@ -107,4 +110,13 @@ model SystemConfig {
   value       String
   description String?
   updatedAt   DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String   @db.Text
+  status    String   @default("unread") // "unread", "read", "replied"
+  createdAt DateTime @default(now())
 }

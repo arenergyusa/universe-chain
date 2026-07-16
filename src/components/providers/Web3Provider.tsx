@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { ReactNode } from 'react';
@@ -6,7 +7,6 @@ import { createAppKit } from '@reown/appkit/react';
 import { bsc } from '@reown/appkit/networks';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, useAccount, useSwitchChain } from 'wagmi';
-import { useRouter, usePathname } from 'next/navigation';
 
 // 1. Create a QueryClient
 const queryClient = new QueryClient();
@@ -40,10 +40,8 @@ createAppKit({
 
 
 function SessionManager() {
-  const { isConnected, isDisconnected, chainId } = useAccount();
+  const { isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
-  const router = useRouter();
-  const pathname = usePathname();
   const wasConnected = React.useRef(false);
 
   // Track previous connection state to detect a real transition
@@ -60,28 +58,7 @@ function SessionManager() {
     }
   }, [isConnected, chainId, switchChain]);
 
-  // Auto logout if wallet transitions to disconnected while in dashboard
-  React.useEffect(() => {
-    const isDashboard = pathname === '/dashboard' || pathname?.startsWith('/dashboard/');
-    
-    if (isDisconnected && wasConnected.current && isDashboard) {
-      const handleLogout = async () => {
-        try {
-          const res = await fetch('/api/auth/logout', { method: 'POST' });
-          if (res.ok) {
-            wasConnected.current = false;
-            router.push('/');
-            router.refresh();
-          } else {
-            console.error('Auto-logout API failed with status:', res.status);
-          }
-        } catch (err) {
-          console.error('Auto-logout request failed:', err);
-        }
-      };
-      handleLogout();
-    }
-  }, [isDisconnected, pathname, router]);
+
 
   return null;
 }

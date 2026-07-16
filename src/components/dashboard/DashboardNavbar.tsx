@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, LayoutDashboard, Layers, Users2, ArrowDownCircle, ArrowUpCircle, History, LogOut, Wallet, ShieldCheck, Copy, Check, Gift } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Layers, Users2, ArrowDownCircle, ArrowUpCircle, History, LogOut, Wallet, ShieldCheck, Gift } from 'lucide-react';
+import { toast } from 'sonner';
 import { UniverseLogo } from '@/components/ui/UniverseLogo';
 
 interface DashboardNavbarProps {
@@ -41,15 +42,22 @@ export default function DashboardNavbar({ user }: DashboardNavbarProps) {
 
   const isActive = (path: string) => pathname === path;
 
+
+
   const handleLogout = async () => {
     try {
       const res = await fetch('/api/auth/logout', { method: 'POST' });
       if (res.ok) {
+        toast.success('Logged out successfully');
         router.push('/');
         router.refresh();
+      } else {
+        toast.error('Failed to logout');
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Logout failed:', err);
+      const msg = err instanceof Error ? err.message : 'Logout failed';
+      toast.error(msg);
     }
   };
 

@@ -16,7 +16,7 @@ export const wagmiAdapter = new WagmiAdapter({
   networks,
   transports: {
     [bsc.id]: fallback([
-      http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL || 'https://bnb-mainnet.g.alchemy.com/v2/Be-ZMfSzCVwtZaaFUF9hm'),
+      http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL || 'https://bnb.publicnode.com'),
       http(process.env.NEXT_PUBLIC_BSC_RPC_URL || 'https://bsc-dataseed.binance.org/')
     ]),
   },

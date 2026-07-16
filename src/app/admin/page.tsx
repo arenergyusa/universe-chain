@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Save, Loader2, Settings } from 'lucide-react';
+import { Save, Loader2, Settings, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface ConfigItem {
   id: number;
@@ -20,23 +22,22 @@ export default function AdminDashboard() {
   const [newValue, setNewValue] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
-  const fetchConfigs = async () => {
-    try {
-      const res = await fetch('/api/admin/config');
-      const data = await res.json();
-      if (res.ok) {
-        setConfigs(data.configs);
-      } else {
-        toast.error(data.error || 'Failed to load configs');
-      }
-    } catch (err) {
-      toast.error('An error occurred while loading configs');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchConfigs = async () => {
+      try {
+        const res = await fetch('/api/admin/config');
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setConfigs(data.data?.configs || []);
+        } else {
+          toast.error(data.error?.message || 'Failed to load configs');
+        }
+      } catch {
+        toast.error('An error occurred while loading configs');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchConfigs();
   }, []);
 
@@ -49,13 +50,13 @@ export default function AdminDashboard() {
         body: JSON.stringify({ key, value: valueToUpdate, description }),
       });
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.success) {
         toast.success(`Config "${key}" updated successfully!`);
         // If it's a new key, append it, else update
         setConfigs(prev => {
           const exists = prev.find(c => c.key === key);
-          if (exists) return prev.map(c => c.key === key ? data.config : c);
-          return [...prev, data.config];
+          if (exists) return prev.map(c => c.key === key ? data.data?.config : c);
+          return [...prev, data.data?.config];
         });
         if (key === newKey) {
           setIsCreating(false);
@@ -64,9 +65,9 @@ export default function AdminDashboard() {
           setNewDesc('');
         }
       } else {
-        toast.error(data.error || 'Failed to update config');
+        toast.error(data.error?.message || 'Failed to update config');
       }
-    } catch (err) {
+    } catch {
       toast.error('An error occurred while updating config');
     } finally {
       setUpdating(null);
@@ -92,24 +93,24 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          <input
+          <Input
             type="text"
             value={localValue}
             onChange={(e) => setLocalValue(e.target.value)}
-            className="flex-1 bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all"
+            className="flex-1 bg-slate-50 border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-5 focus-visible:ring-sky-500/50 transition-all"
           />
-          <button
+          <Button
             onClick={() => handleUpdate(config.key, localValue)}
             disabled={!isChanged || updating === config.key}
-            className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all"
+            className="rounded-xl h-10 px-4 transition-all"
           >
             {updating === config.key ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : (
-              <Save className="w-4 h-4" />
+              <Save className="w-4 h-4 mr-2" />
             )}
             Save
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -127,55 +128,56 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-slate-800">System Variables</h2>
-        <button
+        <Button
           onClick={() => setIsCreating(true)}
-          className="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold py-2 px-4 rounded-xl transition-all shadow-sm"
+          className="bg-sky-500 hover:bg-sky-600 text-white rounded-xl shadow-sm"
         >
-          + Add New
-        </button>
+          <Plus className="w-4 h-4 mr-2" /> Add New
+        </Button>
       </div>
 
       {isCreating && (
         <div className="glass-card bg-white border border-sky-200 rounded-3xl p-6 shadow-sm space-y-4 mb-6">
           <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">Create New Configuration</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input
+            <Input
               type="text"
               placeholder="KEY_NAME"
               value={newKey}
               onChange={(e) => setNewKey(e.target.value.toUpperCase())}
-              className="bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all"
+              className="bg-slate-50 border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-5 focus-visible:ring-sky-500/50 transition-all"
             />
-            <input
+            <Input
               type="text"
               placeholder="Value"
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all"
+              className="bg-slate-50 border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-5 focus-visible:ring-sky-500/50 transition-all"
             />
-            <input
+            <Input
               type="text"
               placeholder="Description (optional)"
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all"
+              className="bg-slate-50 border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-5 focus-visible:ring-sky-500/50 transition-all"
             />
           </div>
           <div className="flex justify-end gap-2">
-            <button
+            <Button
+              variant="outline"
               onClick={() => setIsCreating(false)}
-              className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold py-2 px-4 rounded-xl transition-all"
+              className="rounded-xl"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => handleUpdate(newKey, newValue, newDesc)}
               disabled={!newKey || !newValue || updating === newKey}
-              className="bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 text-xs font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2"
+              className="rounded-xl"
             >
-              {updating === newKey ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {updating === newKey ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
               Save Config
-            </button>
+            </Button>
           </div>
         </div>
       )}

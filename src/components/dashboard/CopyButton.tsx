@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 
+import { toast } from 'sonner';
+
 interface CopyButtonProps {
   text: string;
   label?: string;
@@ -11,10 +13,17 @@ interface CopyButtonProps {
 export default function CopyButton({ text, label = 'Copy Address' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      if (!navigator?.clipboard) throw new Error('Clipboard not supported');
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success('Copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      toast.error('Failed to copy to clipboard');
+    }
   };
 
   return (

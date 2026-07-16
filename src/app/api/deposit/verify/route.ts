@@ -2,24 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/jwt';
 import { db } from '@/lib/db';
 import { ethers } from 'ethers';
+import { depositVerifySchema } from '@/lib/validators';
 
 const USDT_CONTRACT_ADDRESS = process.env.USDT_CONTRACT_ADDRESS || '0x55d398326f99059fF775485246999027B3197955';
-const BSC_PROVIDER_URL = process.env.BSC_PROVIDER_URL || 'https://bsc-dataseed.binance.org/';
-const ADMIN_DEPOSIT_ADDRESS = process.env.ADMIN_WALLET_ADDRESS || '0x0000000000000000000000000000000000000000';
+const BSC_PROVIDER_URL = process.env.NEXT_PUBLIC_BSC_RPC_URL || 'https://bsc-dataseed.binance.org/';
+const ADMIN_DEPOSIT_ADDRESS = process.env.ADMIN_DEPOSIT_ADDRESS || '0x0000000000000000000000000000000000000000';
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized session.' }, { status: 401 });
+      return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized session.' } }, { status: 401 });
     }
 
     const body = await req.json();
-    const { txHash } = body;
+    const result = depositVerifySchema.safeParse(body);
 
-    if (!txHash) {
-      return NextResponse.json({ error: 'Transaction hash is required.' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ 
+        success: false, 
+        error: { code: 'VALIDATION_ERROR', message: result.error.issues[0].message } 
+      }, { status: 400 });
     }
+
+    const { txHash } = result.data;
 
     // 1. Check if this txHash was already processed
     const existingTx = await db.transaction.findUnique({
@@ -27,7 +33,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingTx) {
-      return NextResponse.json({ error: 'Transaction already processed.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'BAD_REQUEST', message: 'Transaction already processed.' } }, { status: 400 });
     }
 
     const user = await db.user.findUnique({
@@ -35,7 +41,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+      return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found.' } }, { status: 404 });
     }
 
     // 2. Fetch transaction receipt from BSC
@@ -43,11 +49,11 @@ export async function POST(req: NextRequest) {
     const receipt = await provider.getTransactionReceipt(txHash);
 
     if (!receipt) {
-      return NextResponse.json({ error: 'Transaction not found on-chain.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'BAD_REQUEST', message: 'Transaction not found on-chain.' } }, { status: 400 });
     }
 
     if (receipt.status !== 1) {
-      return NextResponse.json({ error: 'Transaction failed on-chain.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'BAD_REQUEST', message: 'Transaction failed on-chain.' } }, { status: 400 });
     }
 
     // 3. Parse logs to find the USDT Transfer event
@@ -79,7 +85,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!isValidTransfer || transferAmount <= 0) {
-      return NextResponse.json({ error: 'Valid USDT transfer to admin not found in this transaction.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'BAD_REQUEST', message: 'Valid USDT transfer to admin not found in this transaction.' } }, { status: 400 });
     }
 
     // 4. Credit the user atomically
@@ -116,13 +122,18 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      credited: txResult.credited,
-      newBalance: txResult.newBalance,
+      data: {
+        credited: txResult.credited,
+        newBalance: txResult.newBalance,
+      }
     });
 
   } catch (error: unknown) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Malformed JSON payload' } }, { status: 400 });
+    }
     console.error('Verify deposit error:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error.' } }, { status: 500 });
   }
 }
 

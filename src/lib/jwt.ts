@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-super-secret-key-12345';
+const JWT_SECRET = process.env.JWT_SECRET as string;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('FATAL: JWT_SECRET environment variable is missing or too short. It must be at least 32 characters long.');
+}
 const SESSION_COOKIE_NAME = 'universechain_session';
 
 export interface UserSession {
@@ -10,7 +13,7 @@ export interface UserSession {
 }
 
 export function signToken(payload: UserSession): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
 }
 
 export function verifyToken(token: string): UserSession | null {
@@ -38,7 +41,7 @@ export async function setSession(session: UserSession): Promise<void> {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 30, // 30 days
   });
 }
 

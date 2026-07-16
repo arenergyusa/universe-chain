@@ -1,49 +1,56 @@
 'use client';
 
-import { useState } from 'react';
-import { useAccount } from 'wagmi';
-import { Wallet, ShieldCheck, Loader2, ArrowUpRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Wallet, ShieldCheck, Loader2, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { withdrawSchema } from '@/lib/validators';
+import * as z from 'zod';
 
 interface WithdrawFormProps {
   balance: number;
   feePercentage: number;
+  walletAddress: string;
 }
 
-export default function WithdrawForm({ balance, feePercentage }: WithdrawFormProps) {
-  const { address, isConnected } = useAccount();
+export default function WithdrawForm({ balance, feePercentage, walletAddress }: WithdrawFormProps) {
   const router = useRouter();
-
-  const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const amt = parseFloat(amount) || 0;
+  type WithdrawFormValues = z.infer<typeof withdrawSchema>;
+  
+  const form = useForm<WithdrawFormValues>({
+    resolver: zodResolver(withdrawSchema),
+    defaultValues: {
+      address: walletAddress || '',
+      amount: 0,
+    },
+  });
+
+  useEffect(() => {
+    if (walletAddress) {
+      form.setValue('address', walletAddress);
+    }
+  }, [walletAddress, form]);
+
+  const { formState: { errors } } = form;
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const amt = form.watch('amount') || 0;
   const feeAmount = (amt * feePercentage) / 100;
   const netAmount = amt - feeAmount;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isConnected || !address) {
-      toast.error('Please connect your Web3 wallet first.');
+  const onSubmit = async (values: WithdrawFormValues) => {
+    if (!walletAddress) {
+      toast.error('Wallet address not found in session.');
       return;
     }
 
-    const amt = parseFloat(amount);
-
-    if (isNaN(amt) || amt <= 0) {
-      toast.error('Please enter a valid positive amount.');
-      return;
-    }
-
-    if (amt > balance) {
+    if (values.amount > balance) {
       toast.error('Insufficient balance in your internal vault.');
-      return;
-    }
-
-    if (amt < 10) {
-      toast.error('Minimum withdrawal amount is 10 USDT.');
       return;
     }
 
@@ -55,18 +62,18 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          address: address, // Enforced securely
-          amount: amt,
+          address: walletAddress, // Enforced securely
+          amount: values.amount,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to process withdrawal.');
+        throw new Error(data.error?.message || 'Failed to process withdrawal.');
       }
 
-      toast.success(`Successfully initiated withdrawal of ${amt.toFixed(2)} USDT! Your transaction is processing.`);
-      setAmount('');
+      toast.success(`Successfully initiated withdrawal of ${values.amount.toFixed(2)} USDT! Your transaction is processing.`);
+      form.reset({ address: walletAddress || '', amount: 0 });
       router.refresh();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'An unexpected error occurred.');
@@ -87,27 +94,28 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {/* Destination Address (Enforced via Wagmi) */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Destination Wallet (Connected)
+              Destination Wallet (Saved)
             </label>
           </div>
           <div className="flex items-center space-x-3 w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 font-mono">
-            {isConnected && address ? (
+            {walletAddress ? (
               <>
                 <Wallet className="w-4.5 h-4.5 text-emerald-500 flex-shrink-0" />
-                <span className="truncate">{address}</span>
+                <span className="truncate">{walletAddress}</span>
               </>
             ) : (
               <>
                 <AlertCircle className="w-4.5 h-4.5 text-amber-500" />
-                <span className="text-slate-500">Wallet not connected. Please connect wallet.</span>
+                <span className="text-slate-500">Wallet address not found.</span>
               </>
             )}
           </div>
+          {errors.address && <p className="text-xs text-rose-500 mt-1 font-semibold">{errors.address.message}</p>}
         </div>
 
         {/* Amount */}
@@ -123,26 +131,28 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
             </div>
           </div>
           <div className="relative">
-            <input
+            <Input
               id="amount"
               type="number"
               step="any"
               placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              disabled={loading || !isConnected}
-              className="w-full pl-4 pr-16 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-mono"
-              required
+              disabled={loading}
+              className={`w-full pl-4 pr-16 py-6 bg-slate-50 border-slate-200 rounded-xl text-sm font-semibold text-slate-700 font-mono focus-visible:ring-sky-500/20 ${errors.amount ? 'border-rose-300 ring-rose-200' : ''}`}
+              {...form.register('amount', { valueAsNumber: true })}
             />
-            <button
+            <Button
               type="button"
-              onClick={() => setAmount(balance.toString())}
-              disabled={loading || balance <= 0 || !isConnected}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-slate-200/60 hover:bg-slate-200 text-slate-600 px-2.5 py-1 rounded-md transition-colors uppercase tracking-wider"
+              variant="secondary"
+              size="sm"
+              onClick={() => form.setValue('amount', balance, { shouldValidate: true })}
+              disabled={loading || balance <= 0}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold h-7 px-2.5 rounded-md uppercase tracking-wider"
             >
               Max
-            </button>
+            </Button>
           </div>
+          {errors.amount && <p className="text-xs text-rose-500 mt-1 font-semibold">{errors.amount.message}</p>}
+        </div>
 
           {/* Live Calculation Display */}
           {amt > 0 && (
@@ -157,7 +167,6 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
               </div>
             </div>
           )}
-        </div>
 
         {/* Security Warning */}
         <div className="flex items-start space-x-2.5 p-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl text-[11px] text-slate-400 leading-relaxed">
@@ -168,23 +177,23 @@ export default function WithdrawForm({ balance, feePercentage }: WithdrawFormPro
         </div>
 
         {/* Submit Button */}
-        <button
+        <Button
           type="submit"
-          disabled={loading || balance <= 0 || !isConnected}
-          className="glow-btn w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-sm shadow-md transition-all duration-150"
+          disabled={loading || balance <= 0}
+          className="w-full py-6 rounded-xl font-bold shadow-md transition-all duration-150"
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Processing secure withdrawal...</span>
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              Processing secure withdrawal...
             </>
           ) : (
             <>
-              <ArrowUpRight className="w-4.5 h-4.5" />
-              <span>Request Withdrawal</span>
+              <ArrowUpRight className="w-4.5 h-4.5 mr-2" />
+              Request Withdrawal
             </>
           )}
-        </button>
+        </Button>
       </form>
     </div>
   );

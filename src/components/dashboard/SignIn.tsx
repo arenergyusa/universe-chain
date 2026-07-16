@@ -1,11 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useAccount, useSignMessage, useDisconnect } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
+import { getAddress } from 'viem';
 import { SiweMessage } from 'siwe';
-import { Wallet, ShieldAlert, Loader2, KeyRound } from 'lucide-react';
+import { Wallet, Loader2, KeyRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 export default function SignIn() {
   const { address, isConnected, chainId } = useAccount();
@@ -15,22 +19,14 @@ export default function SignIn() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const siweInProgress = useRef(false);
 
-  // If connected, trigger SIWE flow automatically or let user click
-  useEffect(() => {
-    if (isConnected && address) {
-      handleSiwe();
-    }
-  }, [isConnected, address]);
 
   const handleConnect = async () => {
     try {
-      setError(null);
       await open();
     } catch (err: any) {
-      setError(err.message || 'Failed to connect wallet');
+      toast.error(err.message || 'Failed to connect wallet');
     }
   };
 
@@ -41,11 +37,16 @@ export default function SignIn() {
     try {
       siweInProgress.current = true;
       setLoading(true);
-      setError(null);
 
       // 1. Get nonce from server
       const nonceRes = await fetch('/api/auth/nonce');
-      const { nonce } = await nonceRes.json();
+      const payload = await nonceRes.json();
+
+      if (!nonceRes.ok || !payload.success) {
+        throw new Error(payload.error?.message || 'Failed to retrieve authentication challenge from server.');
+      }
+
+      const nonce = payload.data?.nonce;
 
       if (!nonce) {
         throw new Error('Failed to retrieve authentication challenge from server.');
@@ -57,7 +58,7 @@ export default function SignIn() {
       // 2. Create SIWE message
       const message = new SiweMessage({
         domain: window.location.host,
-        address,
+        address: getAddress(address),
         statement: 'Welcome to Universe Chain. Sign in to securely access your Web3 account dashboard.',
         uri: window.location.origin,
         version: '1',
@@ -89,7 +90,7 @@ export default function SignIn() {
       const verifyData = await verifyRes.json();
 
       if (!verifyRes.ok || !verifyData.success) {
-        throw new Error(verifyData.error || 'Authentication failed');
+        throw new Error(verifyData.error?.message || 'Authentication failed');
       }
 
       // Clean up ref code if registration succeeded
@@ -97,17 +98,28 @@ export default function SignIn() {
         localStorage.removeItem('universechain_ref');
       }
 
+      toast.success('Successfully authenticated!');
+
       // Successful login, refresh page to load dashboard
       router.refresh();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Signature request rejected or failed.');
+      toast.error(err.message || 'Signature request rejected or failed.');
       disconnect(); // Disconnect to allow retry
     } finally {
       setLoading(false);
       siweInProgress.current = false;
     }
   };
+
+  // If connected, trigger SIWE flow automatically or let user click
+  useEffect(() => {
+    if (isConnected && address) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleSiwe();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, address]);
 
 
   return (
@@ -127,40 +139,34 @@ export default function SignIn() {
             </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="flex items-start space-x-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-left text-xs">
-              <ShieldAlert className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
-              <span className="leading-relaxed font-medium">{error}</span>
-            </div>
-          )}
+
 
           {/* Action Button */}
           <div>
             {loading ? (
-              <button
+              <Button
                 disabled
-                className="w-full flex items-center justify-center space-x-2 bg-slate-100 text-slate-400 font-bold py-4 rounded-xl text-sm border border-slate-200 cursor-not-allowed"
+                className="w-full h-14 bg-slate-100 text-slate-400 font-bold rounded-xl text-sm border border-slate-200 cursor-not-allowed hover:bg-slate-100"
               >
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 <span>Authenticating with Wallet...</span>
-              </button>
+              </Button>
             ) : isConnected ? (
-              <button
+              <Button
                 onClick={handleSiwe}
-                className="glow-btn w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl text-sm shadow-md transition-all"
+                className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm shadow-md transition-all"
               >
-                <Wallet className="w-4.5 h-4.5" />
+                <Wallet className="w-4.5 h-4.5 mr-2" />
                 <span>Sign In Challenge</span>
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 onClick={handleConnect}
-                className="glow-btn w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl text-sm shadow-md transition-all"
+                className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm shadow-md transition-all"
               >
-                <Wallet className="w-4.5 h-4.5" />
+                <Wallet className="w-4.5 h-4.5 mr-2" />
                 <span>Connect Wallet</span>
-              </button>
+              </Button>
             )}
           </div>
 

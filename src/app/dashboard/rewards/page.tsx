@@ -1,36 +1,35 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccount } from 'wagmi';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Gift, Users, Box, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 export default function RewardsPage() {
-  const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
   const [claiming, setClaiming] = useState<string | null>(null);
 
-  const { data, isLoading: loading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['auth-me'],
     queryFn: async () => {
       const res = await fetch('/api/auth/me');
       if (!res.ok) throw new Error('Network response was not ok');
       return res.json();
     },
-    enabled: isConnected,
     staleTime: 60000, // Cache for 1 minute
   });
 
   const stats = {
-    directReferrals: data?.user?.directReferralCount || 0,
-    referralRewardsClaimed: data?.user?.referralRewardsClaimed || 0,
-    completedSlots: data?.user?.slots?.filter((s: { status: string }) => s.status === 'completed' || s.status === 'retoped').length || 0,
-    slotRewardsClaimed: data?.user?.slotRewardsClaimed || 0,
+    directReferrals: data?.data?.user?.directReferralCount || 0,
+    referralRewardsClaimed: data?.data?.user?.referralRewardsClaimed || 0,
+    completedSlots: data?.data?.user?.slots?.filter((s: { status: string }) => s.status === 'completed' || s.status === 'retoped').length || 0,
+    slotRewardsClaimed: data?.data?.user?.slotRewardsClaimed || 0,
   };
 
   const configs = {
-    directReward: data?.configs?.directReward || 0,
-    slotReward: data?.configs?.slotReward || 0,
+    directReward: data?.data?.configs?.directReward || 0,
+    slotReward: data?.data?.configs?.slotReward || 0,
   };
 
   const claimReward = async (type: 'referral' | 'slot') => {
@@ -45,29 +44,19 @@ export default function RewardsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to claim reward');
+        throw new Error(data.error?.message || 'Failed to claim reward');
       }
 
-      alert(data.message);
+      toast.success(data.data.message || data.message);
       queryClient.invalidateQueries({ queryKey: ['auth-me'] }); // refresh stats
     } catch (error: unknown) {
-      alert(error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setClaiming(null);
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-          <Gift className="w-8 h-8 text-slate-400" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Connect Wallet</h2>
-        <p className="text-slate-500 text-center max-w-md">Please connect your wallet to view and claim your rewards.</p>
-      </div>
-    );
-  }
+
 
   const eligibleReferralClaims = Math.floor(stats.directReferrals / 2) - stats.referralRewardsClaimed;
   const eligibleSlotClaims = stats.completedSlots - stats.slotRewardsClaimed;
@@ -101,7 +90,7 @@ export default function RewardsPage() {
 
           <h3 className="text-lg font-bold text-slate-900 mb-2">Referral Bonus</h3>
           <p className="text-sm text-slate-500 mb-6 flex-grow">
-            For every 2 active direct referrals you bring into the Universe Chain, you earn a special bonus of {configs.directReward} USDT!
+            For every 2 active direct referrals you bring into the Universe Chain, you receive a special reward of {configs.directReward} USDT!
           </p>
 
           <div className="bg-slate-50 rounded-2xl p-4 mb-6">
@@ -119,12 +108,12 @@ export default function RewardsPage() {
             </div>
           </div>
 
-          <button
+          <Button
             onClick={() => claimReward('referral')}
             disabled={eligibleReferralClaims <= 0 || claiming !== null}
-            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${eligibleReferralClaims > 0 && claiming === null
+            className={`w-full py-6 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${eligibleReferralClaims > 0 && claiming === null
               ? 'bg-gradient-to-r from-indigo-600 to-sky-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              : 'bg-slate-100 text-slate-400'
               }`}
           >
             {claiming === 'referral' ? (
@@ -139,11 +128,11 @@ export default function RewardsPage() {
               <>Claim {eligibleReferralClaims * configs.directReward} USDT</>
             ) : (
               <>
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5 mr-1" />
                 No Rewards Available
               </>
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Slot Completion Rewards Card */}
@@ -161,7 +150,7 @@ export default function RewardsPage() {
 
           <h3 className="text-lg font-bold text-slate-900 mb-2">Slot Bonus</h3>
           <p className="text-sm text-slate-500 mb-6 flex-grow">
-            When your 14-member working slot is completely filled, you earn an extra bonus of {configs.slotReward} USDT as a reward for your leadership!
+            When your 14-member working slot is completely filled, you receive an extra reward of {configs.slotReward} USDT for your community leadership!
           </p>
 
           <div className="bg-slate-50 rounded-2xl p-4 mb-6">
@@ -179,12 +168,12 @@ export default function RewardsPage() {
             </div>
           </div>
 
-          <button
+          <Button
             onClick={() => claimReward('slot')}
             disabled={eligibleSlotClaims <= 0 || claiming !== null}
-            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${eligibleSlotClaims > 0 && claiming === null
+            className={`w-full py-6 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${eligibleSlotClaims > 0 && claiming === null
               ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              : 'bg-slate-100 text-slate-400'
               }`}
           >
             {claiming === 'slot' ? (
@@ -199,11 +188,11 @@ export default function RewardsPage() {
               <>Claim {eligibleSlotClaims * configs.slotReward} USDT</>
             ) : (
               <>
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5 mr-1" />
                 No Rewards Available
               </>
             )}
-          </button>
+          </Button>
         </div>
 
       </div>

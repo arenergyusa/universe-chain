@@ -8,18 +8,18 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized session.' }, { status: 401 });
+      return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized session.' } }, { status: 401 });
     }
 
     const { type } = await req.json(); // 'referral' or 'slot'
 
     if (type !== 'referral' && type !== 'slot') {
-      return NextResponse.json({ error: 'Invalid reward type.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid reward type.' } }, { status: 400 });
     }
 
     // Fetch config for reward amounts
-    const directRewardAmt = parseFloat(await getConfig('DIRECT_REWARD_AMOUNT', 10));
-    const slotRewardAmt = parseFloat(await getConfig('SLOT_COMPLETE_REWARD_AMOUNT', 50));
+    const directRewardAmt = parseFloat(await getConfig('DIRECT_REWARD_AMOUNT', 20));
+    const slotRewardAmt = parseFloat(await getConfig('SLOT_COMPLETE_REWARD_AMOUNT', 20));
 
     const result = await db.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       if (type === 'referral') {
         const eligibleClaims = Math.floor(user.directReferralCount / 2);
         const availableClaims = eligibleClaims - user.referralRewardsClaimed;
-        
+
         if (availableClaims <= 0) {
           throw new Error('No referral rewards available to claim.');
         }
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       } else if (type === 'slot') {
         const completedSlotsCount = user.slots.filter(s => s.status === 'completed' || s.status === 'retoped').length;
         const availableClaims = completedSlotsCount - user.slotRewardsClaimed;
-        
+
         if (availableClaims <= 0) {
           throw new Error('No slot rewards available to claim.');
         }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: user.id,
           amount: amountToCredit,
-          type: 'slot_reward',
+          type: type === 'referral' ? 'invite_reward' : 'slot_bonus',
           status: 'completed',
           txHash: `reward_claim_${type}_${Date.now()}`
         }
@@ -92,9 +92,23 @@ export async function POST(req: NextRequest) {
       timeout: 10000,
     });
 
-    return NextResponse.json({ success: true, message: `Successfully claimed ${result.amount} USDT!`, amount: result.amount });
-  } catch (error: any) {
+    return NextResponse.json({
+      success: true,
+      data: { message: `Successfully claimed ${result.amount} USDT!`, amount: result.amount }
+    });
+  } catch (error: unknown) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Malformed JSON payload' } }, { status: 400 });
+    }
+    if (error instanceof Error) {
+      if (error.message.includes('No referral rewards available to claim.') || error.message.includes('No slot rewards available to claim.')) {
+        return NextResponse.json({ success: false, error: { code: 'BAD_REQUEST', message: error.message } }, { status: 400 });
+      }
+      if (error.message.includes('User not found.')) {
+        return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: error.message } }, { status: 401 });
+      }
+    }
     console.error('Reward claim error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error.' }, { status: 400 });
+    return NextResponse.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error.' } }, { status: 500 });
   }
 }

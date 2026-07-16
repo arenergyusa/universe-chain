@@ -5,7 +5,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET(req: NextRequest) {
   // Rate limit: max 10 nonce requests per minute per IP
-  const rateLimitResponse = checkRateLimit(req, 10, 60000);
+  const rateLimitResponse = await checkRateLimit(req, 10, 60000);
   if (rateLimitResponse) return rateLimitResponse;
 
   const nonce = generateNonce();
@@ -21,5 +21,5 @@ export async function GET(req: NextRequest) {
     maxAge: 60 * 5, // 5 minutes
   });
 
-  return NextResponse.json({ nonce });
+  return NextResponse.json({ success: true, data: { nonce } });
 }
